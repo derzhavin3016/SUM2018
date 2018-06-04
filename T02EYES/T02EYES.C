@@ -83,8 +83,8 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
   BYTE Keys[256];
   POINT pt;
   PAINTSTRUCT ps;
-  INT x, y, mode = 1;
-  static INT w, h;
+  INT x, y;
+  static INT w, h, mode = 1;
   static HBITMAP hBm;
   static HDC hMemDc;
 
@@ -111,6 +111,11 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
     SelectObject(hMemDc, hBm);
     SendMessage(hWnd, WM_TIMER, 0, 0);
     return 0;
+  case WM_KEYDOWN:
+    if (wParam == VK_SPACE)
+      mode = 1 - mode;
+    else if (wParam == VK_ESCAPE)
+      SendMessage(hWnd, WM_CLOSE, 0, 0);
   case WM_TIMER:
     GetCursorPos(&pt);
     ScreenToClient(hWnd, &pt);
