@@ -3,15 +3,112 @@
   * DATE: 04.06.2018
   */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
 #include <time.h>
 #include <math.h>
 
+/* Main window class name */
 #define WND_CLASS_NAME "My window class"
+#define PI 3.14159265358979323846
 
+/* Forward references */
 LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam );
-/* Main program function */
+
+/* Turn full screen window mode function.
+ * ARGUMENTS:
+ *   - window handle:
+ *       HWND hWnd;
+ * RETURNS: None.
+ */
+VOID FlipFullScreen( HWND hWnd )
+{
+  static BOOL IsFullScreen = FALSE;
+  static RECT SaveRC;
+
+  if (IsFullScreen)
+  {
+    /* Restore window size and position */
+    IsFullScreen = FALSE;
+
+    SetWindowPos(hWnd, HWND_TOP, SaveRC.left, SaveRC.top,
+      SaveRC.right - SaveRC.left, SaveRC.bottom - SaveRC.top, SWP_NOOWNERZORDER);
+  }
+  else
+  {
+    RECT rc;
+    HMONITOR hMon;
+    MONITORINFOEX moninfo;
+
+    /* Go to full screen mode */
+    IsFullScreen = TRUE;
+
+    /* Save window position and size */
+    GetWindowRect(hWnd, &SaveRC);
+
+    /* Obtain closest monitor info */
+    hMon = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+    moninfo.cbSize = sizeof(MONITORINFOEX);
+    GetMonitorInfo(hMon, (MONITORINFO *)&moninfo);
+
+    rc = moninfo.rcMonitor;
+    AdjustWindowRect(&rc, GetWindowLong(hWnd, GWL_STYLE), FALSE);
+
+    SetWindowPos(hWnd, HWND_TOP, rc.left, rc.top,
+      rc.right - rc.left, rc.bottom - rc.top, SWP_NOOWNERZORDER);
+  }
+} /* End of 'FlipFullScreen' function */
+
+VOID DrawHand( HDC hDc, INT x0, INT y0, INT L, INT W, DOUBLE si, DOUBLE co , INT color)
+{
+  POINT pts[] = {{0, L}, {-W, 0}, {0, -W}, {W, 0}}, pts1[sizeof(pts) / sizeof(pts[0])];
+  INT i, N = sizeof(pts) / sizeof(pts[0]);
+
+  for (i = 0; i < N; i++)
+  {
+    pts1[i].x = x0 + pts[i].x * co + pts[i].y * si;
+    pts1[i].y = y0 - pts[i].y * co + pts[i].x * si;
+  }
+  SelectObject(hDc, GetStockObject(DC_PEN));
+  SelectObject(hDc, GetStockObject(DC_BRUSH));
+  SetDCPenColor(hDc, RGB(255, 255, 255));
+  SetDCBrushColor(hDc, color);
+  Polygon(hDc, pts1, N);
+}
+
+VOID DrawClock( HDC hDc, INT X, INT Y, INT H )
+{
+  DOUBLE phis, phimin, phih;
+  INT lh, lm, lsec;
+  SYSTEMTIME tm;
+  lsec = H / 2 - 50;
+  lm = lsec - 100;
+  lh = lm - 50;
+  GetLocalTime(&tm);
+
+  phis = tm.wSecond * 2 * PI / 60 + tm.wMilliseconds * 2 * PI / 60000;
+  phimin = 2 * PI  * tm.wMinute / 60 + phis / 60;
+  phih = (tm.wHour % 12) * 2 * PI / 12 + phimin / 12;
+
+  DrawHand(hDc, X, Y, lh - 35, 35, sin(phih), cos(phih), RGB(0, 0, 0));
+  DrawHand(hDc, X, Y, lm - 25, 25, sin(phimin), cos(phimin), RGB(0, 0, 0));
+  DrawHand(hDc, X, Y, lsec - 10, 10, sin(phis), cos(phis), RGB(255, 0, 0));
+}
+
+/* The main program function.
+ * ARGUMENTS:
+ *   - handle of application instance:
+ *       HINSTANCE hInstance;
+ *   - dummy handle of previous application instance (not used):
+ *       HINSTANCE hPrevInstance;
+ *   - command line string:
+ *       CHAR *CmdLine;
+ *   - show window command parameter (see SW_***):
+ *       INT CmdShow;
+ * RETURNS:
+ *   (INT) Error level for operation system (0 for success).
+ */
 INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine, INT ShowCmd )
 {
   WNDCLASS wc;
@@ -30,7 +127,6 @@ INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine,
   wc.lpszClassName = WND_CLASS_NAME;
 
   if (!RegisterClass(&wc))
-
   {
     MessageBox(NULL, "Error register window class", "ERROR", MB_OK);
     return 0;
@@ -46,7 +142,7 @@ INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine,
     hInstance,
     NULL);
 
-  ShowWindow(hWnd, SW_SHOWNORMAL);
+  ShowWindow(hWnd, SW_SHOWMAXIMIZED);
   UpdateWindow(hWnd);
   while (GetMessage(&msg, NULL, 0, 0))
   {
@@ -55,24 +151,52 @@ INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine,
   }
   return msg.wParam;
 } /* End of 'WinMain' function */
+
+/* Main window messages processing function.
+ * ARGUMENTS:
+ *   - descriptor of window:
+ *       HWND hWnd;
+ *   - number of mesage:
+ *       UINT Msg;
+ *   - parameter of mesage ('word parameter'):
+ *       WPARAM wParam;
+ *   - parameter of mesage ('long parameter'):
+ *       LPARAM lParam;
+ * RETURNS:
+ *   (LRESULT) - depends on mesage.
+ */
 LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
 {
-  HDC hDc;
-  
+  HDC hDc;  
   POINT pt;
   PAINTSTRUCT ps;
-  INT x, y;
-  static INT w, h, mode = 1;
-  static HBITMAP hBm;
-  static HDC hMemDc;
+  BITMAP bm;
+  INT x, y, len;
+  SYSTEMTIME tm;
+  MINMAXINFO *minmax;
+  static SIZE s;
+  static INT w, h;
+  static HBITMAP hBm, hBmAnd, hBmXor;
+  static HDC hMemDc, hDcAnd, hDcXor;
+  static HFONT hFnt;
+  static CHAR Buf[1000];
 
   switch (Msg)
   {
   case WM_CREATE:
     hDc = GetDC(hWnd);
     hMemDc = CreateCompatibleDC(hDc);
+    hDcAnd = CreateCompatibleDC(hDc);
+    hDcXor = CreateCompatibleDC(hDc);
     ReleaseDC(hWnd, hDc);
 
+    hBmAnd = LoadImage(NULL, "and.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hBmXor = LoadImage(NULL, "xor.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hFnt = CreateFont(70, 0, 0, 300, FW_BOLD, TRUE, FALSE, FALSE, RUSSIAN_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, 
+      PROOF_QUALITY, FIXED_PITCH | FF_MODERN, "Comic Sans MS");
+ 
+    SelectObject(hDcAnd, hBmAnd);
+    SelectObject(hDcXor, hBmXor);
     SetTimer(hWnd, 47, 30, NULL);
     return 0;
   case WM_SIZE:
@@ -85,39 +209,36 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
     hDc = GetDC(hWnd);
     hBm = CreateCompatibleBitmap(hDc, w, h);
     ReleaseDC(hWnd, hDc);
-
     SelectObject(hMemDc, hBm);
     SendMessage(hWnd, WM_TIMER, 0, 0);
     return 0;
   case WM_KEYDOWN:
-    if (wParam == VK_SPACE)
-      mode = 1 - mode;
-    else if (wParam == VK_ESCAPE)
+    if (wParam == VK_ESCAPE)
       SendMessage(hWnd, WM_CLOSE, 0, 0);
+    else if (wParam == 'F')
+      FlipFullScreen(hWnd);
+    return 0;
   case WM_TIMER:
     GetCursorPos(&pt);
     ScreenToClient(hWnd, &pt);
-
     hDc = hMemDc;
-
     SelectObject(hDc, GetStockObject(DC_PEN));
     SelectObject(hDc, GetStockObject(DC_BRUSH));
-    SetDCPenColor(hDc, RGB(0, 60, 255));
-    SetDCBrushColor(hDc, RGB(0, 60, 255));
-
+    SetDCPenColor(hDc, RGB(255, 255, 255));
+    SetDCBrushColor(hDc, RGB(0, 255, 255));
     Rectangle(hDc, 0, 0, w, h);
-    if (mode == 1)
-    {
-      srand(30);
-      for (x = 0; x < 500; x++)
-      DrawEye(hDc, rand() % 3000, rand() % 2000,  20 + rand() % 50, 4 + rand() % 15, pt.x, pt.y);
-    }
-    else
-    {
-    for (x = 0; x < w; x +=101)
-      for (y = 0; y < h; y += 101)
-        DrawEye(hDc, x, y, 50, 25, pt.x, pt.y);
-    }
+    GetObject(hBmAnd, sizeof(BITMAP), &bm);
+    BitBlt(hDc, w / 2 - bm.bmWidth / 2, h / 2 - bm.bmHeight / 2, bm.bmWidth, bm.bmHeight, hDcAnd, 0, 0, SRCAND);
+    BitBlt(hDc, w / 2 - bm.bmWidth / 2, h / 2 - bm.bmHeight / 2, bm.bmWidth, bm.bmHeight, hDcXor, 0, 0, SRCINVERT);
+    DrawClock(hDc, w / 2, h / 2, bm.bmWidth);
+
+    GetLocalTime(&tm);
+    SelectObject(hMemDc, hFnt);
+    len = sprintf(Buf, "%02i.%02i.%i %02i:%02i:%02i", tm.wDay, tm.wMonth, tm.wYear, tm.wHour, tm.wMinute, tm.wSecond);
+    GetTextExtentPoint(hDc, Buf, len, &s);
+    SetBkMode(hDc, TRANSPARENT);
+    TextOut(hDc, w / 2 - s.cx / 2, h - 70, Buf, len);
+    
 
     InvalidateRect(hWnd, NULL, FALSE);
     return 0;
@@ -126,7 +247,13 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
     BitBlt(hDc, 0, 0, w, h, hMemDc, 0, 0, SRCCOPY);
     EndPaint(hWnd, &ps);
     return 0;
-  case WM_ERASEBKGND:    
+  case WM_GETMINMAXINFO:
+    minmax = (MINMAXINFO *)lParam;
+    minmax->ptMaxTrackSize.y =
+      GetSystemMetrics(SM_CYMAXTRACK) + GetSystemMetrics(SM_CYCAPTION) +
+      GetSystemMetrics(SM_CYBORDER) * 2 + 500;
+    return 0;
+  case WM_ERASEBKGND:
     return 1;
   case WM_CLOSE:
     if (MessageBox(hWnd, "Are you sure to close window?", "Quit", MB_YESNO | MB_DEFBUTTON2 | MB_ICONINFORMATION ) == IDYES)
@@ -135,6 +262,11 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
   case WM_DESTROY:
     DeleteObject(hBm);
     DeleteDC(hMemDc);
+    DeleteObject(hFnt);
+    DeleteDC(hDcAnd);
+    DeleteDC(hDcXor);
+    DeleteObject(hBmAnd);
+    DeleteObject(hBmXor);
     PostMessage(hWnd, WM_QUIT, 0, 0);
     KillTimer(hWnd, 47);
     return 0;
@@ -143,4 +275,4 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
 
 } /* End of 'MyWindowFunc' function */
 
-/* END OF 'T02EYES.C' FILE */
+/* END OF 'T03CLOCK.C' FILE */
