@@ -1,6 +1,6 @@
- /* FILE NAME: T02EYES
+ /* FILE NAME: T03CLOCK
   * PROGRAMMER: AD6
-  * DATE: 01.06.2018
+  * DATE: 04.06.2018
   */
 
 #include <stdlib.h>
@@ -12,27 +12,6 @@
 
 LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam );
 /* Main program function */
-VOID DrawEye( HDC hDc, INT x, INT y, INT r, INT r1, INT mx, INT my )
-{
-  INT
-    dx = mx - x, dy = my - y, sx, sy;
-  DOUBLE
-    len = sqrt(dx * dx + dy * dy), t;
-
-  SetDCPenColor(hDc, RGB(0, 0, 0));
-  SetDCBrushColor(hDc, RGB(255, 255, 255));
-
-  Ellipse(hDc, x - r, y - r, x + r, y + r);
-  if (len < r - r1)
-    sx = mx, sy = my;
-  else
-    t = (r - r1) / len, sx = (INT)(x + dx * t), sy = (INT)(y +dy * t);
-
-  SetDCPenColor(hDc, RGB(0, 0, 0));
-  SetDCBrushColor(hDc, RGB(0, 0, 0));
-  Ellipse(hDc, sx - r1, sy - r1, sx + r1, sy + r1);
-
-}
 INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine, INT ShowCmd )
 {
   WNDCLASS wc;
@@ -58,7 +37,7 @@ INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine,
   }
   hWnd = 
     CreateWindow(WND_CLASS_NAME,
-    "Eyes",
+    "CLOCK",
     WS_OVERLAPPEDWINDOW,
     CW_USEDEFAULT, CW_USEDEFAULT,
     CW_USEDEFAULT, CW_USEDEFAULT,
@@ -76,10 +55,10 @@ INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine,
   }
   return msg.wParam;
 } /* End of 'WinMain' function */
-
 LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
 {
   HDC hDc;
+  
   POINT pt;
   PAINTSTRUCT ps;
   INT x, y;
@@ -164,5 +143,4 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
 
 } /* End of 'MyWindowFunc' function */
 
-/* END OF 'T02EYES.C' FILE */ 
-
+/* END OF 'T02EYES.C' FILE */
