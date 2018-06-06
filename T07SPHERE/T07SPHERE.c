@@ -29,39 +29,50 @@ VECT Veccor( INT X, INT Y, INT Z )
   VECT V = {X, Y, Z};
   return V;
 }
-VOID RotateZ( VECT V, INT R )
+VECT RotateZ( VECT V, DBL Angled )
 {
-  INT i, j;
-  DBL teta, phi, sit = sin(teta), cot = cos(teta), cop = cos(phi), sip = sin(phi);
+  DBL a = Angled * PI / 180, co = cos(a), si = sin(a);
 
-  for (j = 0; j < N; j++)
-  {
-    teta = j * PI / (N - 1);
-    for (i = 0; i < M; i++)
-    {
-      phi = i * 2 * PI / (M - 1);
-      S[j][i] = (R * sip * sint, R * cot, )
-    }
-  }
-
+  return Veccor(V.x * co - V.y * si, V.x * si + V.y * co, V.z);
 }
 
-VOID DrawSphere( HDC hDc, INT x, INT y, INT r )
+VECT RotateY( VECT V, DBL Angled )
+{
+  DBL a = Angled * PI / 180, co = cos(a), si = sin(a);
+
+  return Veccor(V.z * si + V.x * co, V.y, V.z * co - V.x * si);
+}
+
+VOID MakeSphere( INT R )
+{
+  INT i, j;
+
+  for (i = 0; i < N; i++)
+  {
+    DBL teta = i * PI / (N - 1), sit = sin(teta), cot = cos(teta);
+    for (j = 0; j < M; j++)
+    {
+      DBL phi = j * 2 * PI / (M - 1), sip = sin(phi), cop = cos(phi);
+
+      S[i][j] = Veccor(R * sip * sit, R * cot, R * cop * sit);
+    }
+  }
+}
+
+VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
 {
   INT i, j, x1, y1;
-  DBL teta = 0;
+  static POINT P[N][M];
  
-  for (j = 0; z < N; z++)
-  {
-    teta = z * PI / N;
-  for (i = 0; i < M; i++)
-  {
-    x1 = x + r * sin(teta) * cos(i * 2 * PI / N);
-    y1 = y - r * sin(teta) * sin(i * 2 * PI / N);
-    SetPixel(hDc, x1, y1, RGB(0, 200, 0));
-  
-  }
-  }
+  for (i = 0; i < N; i++)
+    for (j = 0; i < M; i++)
+    {
+      VECT R = RotateZ(S[i][j], 30);
+      P[i][j].x = (INT)(x0 + r * R.x);
+      P[i][j].y = (INT)(y0 - r * R.y);
+      Ellipse(hDc, P[i][j].x - 3, P[i][j].y - 3, P[i][j].x + 3, P[i][j].y + 3);
+    }
+
 }
 
 
