@@ -22,9 +22,10 @@ typedef struct
 {
   DBL x, y, z;
 } VECT;
-VECT S[N][M];
+static VECT S[N][M];
 
-VECT Veccor( INT X, INT Y, INT Z )
+
+VECT Veccor( DBL X, DBL Y, DBL Z )
 {
   VECT V = {X, Y, Z};
   return V;
@@ -43,7 +44,7 @@ VECT RotateY( VECT V, DBL Angled )
   return Veccor(V.z * si + V.x * co, V.y, V.z * co - V.x * si);
 }
 
-VOID MakeSphere( INT R )
+VOID MakeSphere( DBL R )
 {
   INT i, j;
 
@@ -62,17 +63,31 @@ VOID MakeSphere( INT R )
 VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
 {
   INT i, j, x1, y1;
+  DBL t = clock() / (DBL)CLOCKS_PER_SEC;
   static POINT P[N][M];
  
   for (i = 0; i < N; i++)
-    for (j = 0; i < M; i++)
+    for (j = 0; j < M; j++)
     {
-      VECT R = RotateZ(S[i][j], 30);
-      P[i][j].x = (INT)(x0 + r * R.x);
-      P[i][j].y = (INT)(y0 - r * R.y);
-      Ellipse(hDc, P[i][j].x - 3, P[i][j].y - 3, P[i][j].x + 3, P[i][j].y + 3);
+      VECT V = RotateY(RotateZ(S[i][j], 30 * t), -80 * t);
+      P[i][j].x = (INT)(x0 + r * V.x);
+      P[i][j].y = (INT)(y0 - r * V.y);
+      SetDCPenColor(hDc, RGB(0, 0, 200));
+      SetDCBrushColor(hDc, RGB(0, 200, 0));
+      Ellipse(hDc, P[i][j].x - 5, P[i][j].y - 5, P[i][j].x + 5, P[i][j].y + 5);
     }
-
+  for (i = 0; i < N; i++)
+  {
+    MoveToEx(hDc, P[i][0].x, P[i][0].y, 0);
+    for (j = 1; j < M; j++)
+      LineTo(hDc, P[i][j].x, P[i][j].y);
+  }
+  for (i = 0; i < M; i++)
+  {
+    MoveToEx(hDc, P[0][i].x, P[0][i].y, 0);
+    for (j = 1; j < N; j++)
+      LineTo(hDc, P[j][i].x, P[j][i].y);
+  }
 }
 
 
@@ -194,6 +209,7 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
     SetDCBrushColor(hMemDc, RGB(0, 0, 0));
     Rectangle(hMemDc, 0, 0, w, h);
     
+    MakeSphere(R);
     DrawSphere(hMemDc, w / 2, h / 2, 250);
 
     InvalidateRect(hWnd, NULL, FALSE);
