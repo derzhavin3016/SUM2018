@@ -9,6 +9,8 @@
 #include <time.h>
 #include <math.h>
 
+#include "resource.h"
+
 /* Main window class name */
 #define WND_CLASS_NAME "My window class"
 #define PI 3.14159265358979323846
@@ -174,6 +176,8 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
   INT x, y, len;
   SYSTEMTIME tm;
   MINMAXINFO *minmax;
+  CREATESTRUCT *cs;
+  CHAR *week[7] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
   static SIZE s;
   static INT w, h;
   static HBITMAP hBm, hBmAnd, hBmXor;
@@ -184,14 +188,15 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
   switch (Msg)
   {
   case WM_CREATE:
+    cs = (LPARAM *)lParam;
     hDc = GetDC(hWnd);
     hMemDc = CreateCompatibleDC(hDc);
     hDcAnd = CreateCompatibleDC(hDc);
     hDcXor = CreateCompatibleDC(hDc);
     ReleaseDC(hWnd, hDc);
 
-    hBmAnd = LoadImage(NULL, "and.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-    hBmXor = LoadImage(NULL, "xor.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hBmAnd = LoadImage(cs->hInstance, (CHAR *)IDB_BITMAP1, IMAGE_BITMAP, 0, 0, 0);
+    hBmXor = LoadImage(cs->hInstance, (CHAR *)IDB_BITMAP2, IMAGE_BITMAP, 0, 0, 0);
     hFnt = CreateFont(70, 0, 0, 300, FW_BOLD, TRUE, FALSE, FALSE, RUSSIAN_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, 
       PROOF_QUALITY, FIXED_PITCH | FF_MODERN, "Comic Sans MS");
  
@@ -234,11 +239,13 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
 
     GetLocalTime(&tm);
     SelectObject(hMemDc, hFnt);
-    len = sprintf(Buf, "%02i.%02i.%i %02i:%02i:%02i", tm.wDay, tm.wMonth, tm.wYear, tm.wHour, tm.wMinute, tm.wSecond);
+    len = sprintf(Buf, "%s %02i.%02i.%i %02i:%02i:%02i", week[tm.wDayOfWeek], tm.wDay, tm.wMonth, tm.wYear, tm.wHour, tm.wMinute, tm.wSecond);
     GetTextExtentPoint(hDc, Buf, len, &s);
     SetBkMode(hDc, TRANSPARENT);
     TextOut(hDc, w / 2 - s.cx / 2, h - 70, Buf, len);
-    
+    SetDCPenColor(hDc, RGB(255, 255, 255));
+    SetDCBrushColor(hDc, RGB(0, 255, 255));
+    Ellipse(hDc, w / 2- 35, h / 2 - 35, w / 2 + 35, h / 2 + 35);
 
     InvalidateRect(hWnd, NULL, FALSE);
     return 0;
