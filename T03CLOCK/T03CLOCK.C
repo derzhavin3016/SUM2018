@@ -145,7 +145,9 @@ INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine,
     NULL);
 
   ShowWindow(hWnd, SW_SHOWMAXIMIZED);
+  FlipFullScreen(hWnd);
   UpdateWindow(hWnd);
+
   while (GetMessage(&msg, NULL, 0, 0))
   {
     TranslateMessage(&msg);
@@ -220,8 +222,9 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
   case WM_KEYDOWN:
     if (wParam == VK_ESCAPE)
       SendMessage(hWnd, WM_CLOSE, 0, 0);
-    else if (wParam == 'F')
-      FlipFullScreen(hWnd);
+    return 0;
+  case WM_MOUSEMOVE:
+    SendMessage(hWnd, WM_CLOSE, 0, 0);
     return 0;
   case WM_TIMER:
     GetCursorPos(&pt);
