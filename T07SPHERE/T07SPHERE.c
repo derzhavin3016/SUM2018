@@ -22,7 +22,7 @@ typedef struct
 {
   DBL x, y, z;
 } VECT;
-VECT S[N][M]
+VECT S[N][M];
 
 VECT Veccor( INT X, INT Y, INT Z )
 {
@@ -151,7 +151,8 @@ INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine,
  */
 LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
 {
-  HDC hDc;  
+  HDC hDc;
+  INT R = 1;
   POINT pt;
   PAINTSTRUCT ps;
   SYSTEMTIME tm;
@@ -162,11 +163,12 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
   switch (Msg)
   {
   case WM_CREATE:
+    SetTimer(hWnd, 47, 3, NULL);
     hDc = GetDC(hWnd);
     hMemDc = CreateCompatibleDC(hDc);
     ReleaseDC(hWnd, hDc);
 
-    SetTimer(hWnd, 47, 30, NULL);
+    MakeSphere(R);
     return 0;
   case WM_SIZE:
     h = HIWORD(lParam);
