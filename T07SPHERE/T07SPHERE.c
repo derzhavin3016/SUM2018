@@ -1,4 +1,4 @@
-/* FILE NAME: T07SPHERE
+/* FILE NAME: T07SPH
   * PROGRAMMER: AD6
   * DATE: 06.06.2018
   */
@@ -9,49 +9,97 @@
 #include <time.h>
 #include <math.h>
 
-
+/* PI contstant */
 #define PI 3.14159265358979323846
+
+/* Grid size */
 #define N 10
 #define M 21
+
 /* Main window class name */
 #define WND_CLASS_NAME "My window class"
 
+/* Useful float point type */
 typedef DOUBLE DBL;
 
+/* Space vector representation type */
 typedef struct
 {
-  DBL x, y, z;
+  DBL x, y, z; /* Cartesian coordinates */
 } VECT;
-static VECT S[N][M];
+
+/* Geometry grid */
+static VECT S[N][M]; 
 
 
+/* Vector set function.
+ * ARGUMENTS:
+ *   - vector coordinates:
+ *       DBL X, Y, Z;
+ * RETURNS:
+ *   (VECT) result vector.
+ */
 VECT Veccor( DBL X, DBL Y, DBL Z )
 {
   VECT V = {X, Y, Z};
   return V;
-}
+} /* End of 'Veccor' function */
+
+/* Vector rotate around Z axis function.
+ * ARGUMENTS:
+ *   - vector:
+ *       VECT V;
+ *   - rotation angle in degree:
+ *       DBL Angled;
+ * RETURNS:
+ * (VECT) result vector.
+ */   
 VECT RotateZ( VECT V, DBL Angled )
 {
   DBL a = Angled * PI / 180, co = cos(a), si = sin(a);
 
   return Veccor(V.x * co - V.y * si, V.x * si + V.y * co, V.z);
-}
+} /* End of 'RotateZ' function */
 
+/* Vector rotate around Y axis function.
+ * ARGUMENTS:
+ *   - vector:
+ *       VECT V;
+ *   - rotation angle in degree:
+ *       DBL Angled;
+ * RETURNS:
+ *   (VECT) result vector.
+ */
 VECT RotateY( VECT V, DBL Angled )
 {
   DBL a = Angled * PI / 180, co = cos(a), si = sin(a);
 
   return Veccor(V.z * si + V.x * co, V.y, V.z * co - V.x * si);
-}
+} /* End of 'RotateY' function */
 
+/* Vector rotate around X axis function.
+ * ARGUMENTS:
+ *   - vector:
+ *       VECT V;
+ *   - rotation angle in degree:
+ *       DBL Angled;
+ * RETURNS:
+ *   (VECT) result vector.
+ */
 VECT RotateX( VECT V, DBL Angled )
 {
   DBL a = Angled * PI / 180, co = cos(a), si = sin(a);
 
   return Veccor(V.x, V.y * co + V.z * si, V.z * co - V.y * si);
-}
+} /* End of 'RotateX' function */
 
-VOID MakeSphere( DBL R )
+/* Make sphere points and finding coordinates.
+ * ARGUMENTS: 
+ *   - radius:
+         INT R
+ * RETURNS: None.
+ */
+VOID MakeSphere( INT R )
 {
   INT i, j;
 
@@ -65,8 +113,18 @@ VOID MakeSphere( DBL R )
       S[i][j] = Veccor(R * sip * sit, R * cot, R * cop * sit);
     }
   }
-}
+} /* End of 'MakeSphere' function */
 
+/* Draw sphere function.
+ * ARGUMENTS:
+ *   - device context:
+ *       HDC hDC;
+ *   - center point coordinates:
+ *       INT X0, Y0;
+ *   - radius:
+ *       INT R;
+ * RETURNS: None.
+ */
 VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
 {
   INT i, j, x1, y1;
@@ -76,10 +134,10 @@ VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
   for (i = 0; i < N; i++)
     for (j = 0; j < M; j++)
     {
-      VECT V = RotateX(RotateY(RotateZ(S[i][j], 18), - 30 * t),  - 20 * t);
+      VECT V = RotateX(RotateY(RotateZ(S[i][j], 18 * t), - 30 * t),  - 20 * t);
       P[i][j].x = (INT)(x0 + r * V.x);
       P[i][j].y = (INT)(y0 - r * V.y);
-      SetDCPenColor(hDc, RGB(0, 0, 200));
+      SetDCPenColor(hDc, RGB( 0, 200, 200));
       SetDCBrushColor(hDc, RGB(0, 200, 0));
       Ellipse(hDc, P[i][j].x - 5, P[i][j].y - 5, P[i][j].x + 5, P[i][j].y + 5);
       //SetPixel(hDc, P[i][j].x, P[i][j].y, RGB(0, 0, 200));
@@ -87,7 +145,9 @@ VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
   for (i = 0; i < N; i++)
   {
     MoveToEx(hDc, P[i][0].x, P[i][0].y, 0);
+    SetDCPenColor(hDc, RGB(200, 60, 0));
     for (j = 1; j < M; j++)
+
       LineTo(hDc, P[i][j].x, P[i][j].y);
   }
   for (i = 0; i < M; i++)
@@ -96,7 +156,7 @@ VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
     for (j = 1; j < N; j++)
       LineTo(hDc, P[j][i].x, P[j][i].y);
   }
-}
+}  /* End of 'DrawSphere' function */
 
 
 /* Forward references */
@@ -244,4 +304,4 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
 
 } /* End of 'MyWindowFunc' function */
 
-/* END OF 'T03CLOCK.C' FILE */
+/* END OF 'T07SPH.C' FILE */
