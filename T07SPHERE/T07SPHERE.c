@@ -155,11 +155,12 @@ VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
       LineTo(hDc, P[j][i].x, P[j][i].y);
   }
 #endif
-   
+
+
 
   SelectObject(hDc, GetStockObject(DC_PEN));
   SetDCPenColor(hDc, RGB(0, 0, 0));
-  
+
   for (i = 1; i < N - 1; i ++)
   {
     srand(i);
@@ -172,12 +173,11 @@ VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
       pnts[3] = P[i + 1][j];
 
       srand(j);
-      if ((pnts[0].x - pnts[1].x) * (pnts[0].y + pnts[1].y) + 
-          (pnts[1].x - pnts[2].x) * (pnts[1].y + pnts[2].y) + 
-          (pnts[2].x - pnts[3].x) * (pnts[2].y + pnts[3].y) + 
+      if ((pnts[0].x - pnts[1].x) * (pnts[0].y + pnts[1].y) +
+          (pnts[1].x - pnts[2].x) * (pnts[1].y + pnts[2].y) +
+          (pnts[2].x - pnts[3].x) * (pnts[2].y + pnts[3].y) +
           (pnts[3].x - pnts[0].x) * (pnts[3].y + pnts[0].y) < 0)
       {
-        SelectObject(hDc, GetStockObject(DC_BRUSH));  
         SetDCBrushColor(hDc, RGB(180, 0, 0));
         Polygon(hDc, pnts, 4);
       }
@@ -188,8 +188,6 @@ VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
     
 
     for (i = 1; i < N - 1; i++)
-    {
-      //srand(i);
       for (j = 0; j < M - 1; j++)
       {
         POINT pnts[4];
@@ -198,8 +196,7 @@ VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
         pnts[1] = P[i][j + 1];
         pnts[2] = P[i + 1][j + 1];
         pnts[3] = P[i + 1][j];
-    
-        //srand(j);
+
         if ((pnts[0].x - pnts[1].x) * (pnts[0].y + pnts[1].y) + 
             (pnts[1].x - pnts[2].x) * (pnts[1].y + pnts[2].y) + 
             (pnts[2].x - pnts[3].x) * (pnts[2].y + pnts[3].y) + 
@@ -211,7 +208,6 @@ VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
             Polygon(hDc, pnts, 4);
           }
        }
-    }
 }  /* End of 'DrawSphere' function */
 
 
