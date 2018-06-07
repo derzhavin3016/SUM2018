@@ -102,15 +102,16 @@ VECT RotateX( VECT V, DBL Angled )
 VOID MakeSphere( INT R )
 {
   INT i, j;
+  DBL t = clock() / (DBL)CLOCKS_PER_SEC;
 
-  for (i = 0; i < N; i++)
+  for (i = 1; i < N; i++)
   {
-    DBL teta = i * PI / (N - 1), sit = sin(teta), cot = cos(teta);
+    DBL teta = i * PI / (N - 0), sit = sin(teta), cot = cos(teta);
     for (j = 0; j < M; j++)
     {
       DBL phi = j * 2 * PI / (M - 1), sip = sin(phi), cop = cos(phi);
 
-      S[i][j] = Veccor(R * sip * sit, R * cot, R * cop * sit);
+      S[i][j] = Veccor(R * sip * sit , R * cot, R * cop * sit);
     }
   }
 } /* End of 'MakeSphere' function */
@@ -130,6 +131,7 @@ VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
   INT i, j, x1, y1;
   DBL t = clock() / (DBL)CLOCKS_PER_SEC;
   static POINT P[N][M];
+
  
   for (i = 0; i < N; i++)
     for (j = 0; j < M; j++)
@@ -137,15 +139,11 @@ VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
       VECT V = RotateX(RotateY(RotateZ(S[i][j], 18 * t), - 30 * t),  - 20 * t);
       P[i][j].x = (INT)(x0 + r * V.x);
       P[i][j].y = (INT)(y0 - r * V.y);
-      SetDCPenColor(hDc, RGB( 0, 200, 200));
-      SetDCBrushColor(hDc, RGB(0, 200, 0));
-      Ellipse(hDc, P[i][j].x - 5, P[i][j].y - 5, P[i][j].x + 5, P[i][j].y + 5);
-      //SetPixel(hDc, P[i][j].x, P[i][j].y, RGB(0, 0, 200));
     }
+#if 0
   for (i = 0; i < N; i++)
   {
     MoveToEx(hDc, P[i][0].x, P[i][0].y, 0);
-    SetDCPenColor(hDc, RGB(200, 60, 0));
     for (j = 1; j < M; j++)
 
       LineTo(hDc, P[i][j].x, P[i][j].y);
@@ -156,11 +154,113 @@ VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
     for (j = 1; j < N; j++)
       LineTo(hDc, P[j][i].x, P[j][i].y);
   }
+#endif
+   
+
+  SelectObject(hDc, GetStockObject(DC_PEN));
+  SetDCPenColor(hDc, RGB(0, 0, 0));
+  
+  for (i = 1; i < N - 1; i ++)
+  {
+    srand(i);
+    for (j = 0; j < M - 1; j++)
+    {
+      POINT pnts[4];
+      pnts[0] = P[i][j];
+      pnts[1] = P[i][j + 1];
+      pnts[2] = P[i + 1][j + 1];
+      pnts[3] = P[i + 1][j];
+
+      srand(j);
+      if ((pnts[0].x - pnts[1].x) * (pnts[0].y + pnts[1].y) + 
+          (pnts[1].x - pnts[2].x) * (pnts[1].y + pnts[2].y) + 
+          (pnts[2].x - pnts[3].x) * (pnts[2].y + pnts[3].y) + 
+          (pnts[3].x - pnts[0].x) * (pnts[3].y + pnts[0].y) < 0)
+      {
+        SelectObject(hDc, GetStockObject(DC_BRUSH));  
+        SetDCBrushColor(hDc, RGB(180, 0, 0));
+        Polygon(hDc, pnts, 4);
+      }
+    }
+  }
+    
+    SelectObject(hDc, GetStockObject(NULL_BRUSH));
+    
+
+    for (i = 1; i < N - 1; i++)
+    {
+      //srand(i);
+      for (j = 0; j < M - 1; j++)
+      {
+        POINT pnts[4];
+
+        pnts[0] = P[i][j];
+        pnts[1] = P[i][j + 1];
+        pnts[2] = P[i + 1][j + 1];
+        pnts[3] = P[i + 1][j];
+    
+        //srand(j);
+        if ((pnts[0].x - pnts[1].x) * (pnts[0].y + pnts[1].y) + 
+            (pnts[1].x - pnts[2].x) * (pnts[1].y + pnts[2].y) + 
+            (pnts[2].x - pnts[3].x) * (pnts[2].y + pnts[3].y) + 
+            (pnts[3].x - pnts[0].x) * (pnts[3].y + pnts[0].y) > 0)
+          {   
+            SelectObject(hDc, GetStockObject(DC_BRUSH));  
+            SetDCBrushColor(hDc, j % 2 == 0 ? RGB(0, 0, 0): RGB(0, 180, 0));
+            SetDCPenColor(hDc, RGB(0, 0, 0));  
+            Polygon(hDc, pnts, 4);
+          }
+       }
+    }
 }  /* End of 'DrawSphere' function */
 
 
 /* Forward references */
 LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam );
+
+/* Turn full screen window mode function.
+ * ARGUMENTS:
+ *   - window handle:
+ *       HWND hWnd;
+ * RETURNS: None.
+ */
+VOID FlipFullScreen( HWND hWnd )
+{
+  static BOOL IsFullScreen = FALSE;
+  static RECT SaveRC;
+
+  if (IsFullScreen)
+  {
+    /* Restore window size and position */
+    IsFullScreen = FALSE;
+
+    SetWindowPos(hWnd, HWND_TOP, SaveRC.left, SaveRC.top,
+      SaveRC.right - SaveRC.left, SaveRC.bottom - SaveRC.top, SWP_NOOWNERZORDER);
+  }
+  else
+  {
+    RECT rc;
+    HMONITOR hMon;
+    MONITORINFOEX moninfo;
+
+    /* Go to full screen mode */
+    IsFullScreen = TRUE;
+
+    /* Save window position and size */
+    GetWindowRect(hWnd, &SaveRC);
+
+    /* Obtain closest monitor info */
+    hMon = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+    moninfo.cbSize = sizeof(MONITORINFOEX);
+    GetMonitorInfo(hMon, (MONITORINFO *)&moninfo);
+
+    rc = moninfo.rcMonitor;
+    AdjustWindowRect(&rc, GetWindowLong(hWnd, GWL_STYLE), FALSE);
+
+    SetWindowPos(hWnd, HWND_TOP, rc.left, rc.top,
+      rc.right - rc.left, rc.bottom - rc.top, SWP_NOOWNERZORDER);
+  }
+} /* End of 'FlipFullScreen' function */
 
 /* The main program function.
  * ARGUMENTS:
@@ -237,6 +337,7 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
   HDC hDc;
   INT R = 1;
   POINT pt;
+  MINMAXINFO *minmax;
   PAINTSTRUCT ps;
   SYSTEMTIME tm;
   static INT w, h;
@@ -269,12 +370,14 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
   case WM_KEYDOWN:
     if (wParam == VK_ESCAPE)
       SendMessage(hWnd, WM_CLOSE, 0, 0);
+    else if (wParam == 'F')
+      FlipFullScreen(hWnd);
     return 0;
   case WM_TIMER:
     SelectObject(hMemDc, GetStockObject(DC_PEN));
     SelectObject(hMemDc, GetStockObject(DC_BRUSH));
     SetDCPenColor(hMemDc, RGB(255, 255, 255));
-    SetDCBrushColor(hMemDc, RGB(0, 0, 0));
+    SetDCBrushColor(hMemDc, RGB(255, 255, 255));
     Rectangle(hMemDc, 0, 0, w, h);
     
     MakeSphere(R);
@@ -286,6 +389,12 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
     hDc = BeginPaint(hWnd, &ps);
     BitBlt(hDc, 0, 0, w, h, hMemDc, 0, 0, SRCCOPY);
     EndPaint(hWnd, &ps);
+    return 0;
+  case WM_GETMINMAXINFO:
+    minmax = (MINMAXINFO *)lParam;
+    minmax->ptMaxTrackSize.y =
+      GetSystemMetrics(SM_CYMAXTRACK) + GetSystemMetrics(SM_CYCAPTION) +
+      GetSystemMetrics(SM_CYBORDER) * 2 + 500;
     return 0;
   case WM_ERASEBKGND:
     return 1;
