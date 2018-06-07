@@ -11,8 +11,8 @@
 
 
 #define PI 3.14159265358979323846
-#define N 8
-#define M 18
+#define N 10
+#define M 21
 /* Main window class name */
 #define WND_CLASS_NAME "My window class"
 
@@ -44,6 +44,13 @@ VECT RotateY( VECT V, DBL Angled )
   return Veccor(V.z * si + V.x * co, V.y, V.z * co - V.x * si);
 }
 
+VECT RotateX( VECT V, DBL Angled )
+{
+  DBL a = Angled * PI / 180, co = cos(a), si = sin(a);
+
+  return Veccor(V.x, V.y * co + V.z * si, V.z * co - V.y * si);
+}
+
 VOID MakeSphere( DBL R )
 {
   INT i, j;
@@ -69,12 +76,13 @@ VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
   for (i = 0; i < N; i++)
     for (j = 0; j < M; j++)
     {
-      VECT V = RotateY(RotateZ(S[i][j], 30 * t), -80 * t);
+      VECT V = RotateX(RotateY(RotateZ(S[i][j], 18), - 30 * t),  - 20 * t);
       P[i][j].x = (INT)(x0 + r * V.x);
       P[i][j].y = (INT)(y0 - r * V.y);
       SetDCPenColor(hDc, RGB(0, 0, 200));
       SetDCBrushColor(hDc, RGB(0, 200, 0));
       Ellipse(hDc, P[i][j].x - 5, P[i][j].y - 5, P[i][j].x + 5, P[i][j].y + 5);
+      //SetPixel(hDc, P[i][j].x, P[i][j].y, RGB(0, 0, 200));
     }
   for (i = 0; i < N; i++)
   {
