@@ -111,7 +111,7 @@ VOID MakeSphere( INT R )
     {
       DBL phi = j * 2 * PI / (M - 1), sip = sin(phi), cop = cos(phi);
 
-      S[i][j] = Veccor(R * sip * sit , R * cot, R * cop * sit);
+      S[i][j] = Veccor(R * sip * sit, R * cot, R * cop * sit);
     }
   }
 } /* End of 'MakeSphere' function */
@@ -178,9 +178,10 @@ VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
           (pnts[2].x - pnts[3].x) * (pnts[2].y + pnts[3].y) +
           (pnts[3].x - pnts[0].x) * (pnts[3].y + pnts[0].y) < 0)
       {
-        //SetDCBrushColor(hDc, RGB(180, 0, 0));
-        srand(j * j * i);
-        SetDCBrushColor(hDc, RGB(rand() % 255, rand() % 255, rand() % 255));
+        SetDCBrushColor(hDc, RGB(180, 0, 0));
+        //srand(j * j * i);
+        //SetDCBrushColor(hDc, RGB(rand() % 255, rand() % 255, rand() % 255));
+        SetDCPenColor(hDc, RGB(180, 0, 0));
         Polygon(hDc, pnts, 4);
       }
     }
@@ -189,7 +190,7 @@ VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
     SelectObject(hDc, GetStockObject(NULL_BRUSH));
     
 
-    for (i = 1; i < N - 1; i++)
+    for (i = 1; i < N - 1 ; i++)
     {
       
       for (j = 0; j < M - 1; j++)
@@ -207,10 +208,10 @@ VOID DrawSphere( HDC hDc, INT x0, INT y0, INT r )
             (pnts[3].x - pnts[0].x) * (pnts[3].y + pnts[0].y) > 0)
           {   
             SelectObject(hDc, GetStockObject(DC_BRUSH));  
-            //SetDCBrushColor(hDc, j % 2 == 0 ? RGB(0, 0, 0): RGB(0, 180, 0));
-            srand(j * i * i);
-            SetDCBrushColor(hDc, RGB(rand() % 255, rand() % 255, rand() % 255));
-            SetDCPenColor(hDc, RGB(0, 0, 0));  
+            SetDCBrushColor(hDc, j % 2 == 0 ? RGB(0, 0, 0): RGB(0, 180, 0));
+            //srand(j);
+            //SetDCPenColor(hDc, RGB(rand() % 255, rand() % 255, rand() % 255));
+            SetDCPenColor(hDc, j % 2 == 0 ? RGB(0, 0, 0): RGB(0, 180, 0));  
             Polygon(hDc, pnts, 4);
           }
        }
