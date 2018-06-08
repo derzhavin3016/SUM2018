@@ -41,6 +41,7 @@ BOOL LoadMatrix( CHAR *FileName )
 }
 /* Store permutation to log file function */
 VOID Store( VOID )
+
 {
   INT i, j;
   FILE *F;
