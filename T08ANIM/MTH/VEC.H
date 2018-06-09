@@ -3,6 +3,8 @@
   * DATE: 07.06.2018
   */
 
+#ifndef __VEC_H_
+#define __VEC_H_
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
@@ -29,9 +31,9 @@ static MATR UnitMatrix =
 {
   {
     {1, 0, 0, 0},
-    {1, 0, 0, 0},
-    {1, 0, 0, 0},
-    {1, 0, 0, 0}
+    {0, 1, 0, 0},
+    {0, 0, 1, 0},
+    {0, 0, 0, 1}
   }
 };
 
@@ -456,7 +458,7 @@ __inline MATR MatrInverse( MATR M )
   return r;
 }
 
-__inline MATR MatrView( VEC At, VEC Loc, VEC Up1 )
+__inline MATR MatrView( VEC Loc, VEC At, VEC Up1 )
 {
   VEC 
     Dir = VecNormalize(VecSubVec(At, Loc)),
@@ -469,22 +471,22 @@ __inline MATR MatrView( VEC At, VEC Loc, VEC Up1 )
       {Right.X, Up.X, -Dir.X, 0},
       {Right.Y, Up.Y, -Dir.Y, 0},
       {Right.Z, Up.Z, -Dir.Z, 0},
-      {-VecDotVec(Loc, Right), -VecDotVec(Loc, Up), -VecDotVec(Loc, Dir), 1}
+      {-VecDotVec(Loc, Right), -VecDotVec(Loc, Up), VecDotVec(Loc, Dir), 1}
     }
   };
 
   return m;
 }
 
-__inline MATR MatrViewFrustum( DBL r, DBL l, DBL t, DBL b, DBL f, DBL n )
+__inline MATR MatrFrustum( DBL l, DBL r, DBL b, DBL t, DBL n, DBL f )
 {
   MATR m = 
   {
     {
-      {2 * n / (r - l), 0, 0, 0},
-      {0, 2 * n / (t - b), 0, 0},
+      {(2 * n) / (r - l), 0, 0, 0},
+      {0, (2 * n) / (t - b), 0, 0},
       {(r + l) / (r - l), (t + b) / (t - b), -(f + n) / (f - n), -1},
-      {0, 0, -2 * n * f / (f - n), 0}
+      {0, 0, (-2 * n * f) / (f - n), 0}
     }
   };
 
@@ -493,14 +495,15 @@ __inline MATR MatrViewFrustum( DBL r, DBL l, DBL t, DBL b, DBL f, DBL n )
 
 __inline VEC VecMulMatr4x4( VEC V, MATR M )
 {
-   DBL w = V.X * M.M[0][3] + V.Y * M.M[1][3] + V.Z * M.M[2][3];
+   DBL w = V.X * M.M[0][3] + V.Y * M.M[1][3] + V.Z * M.M[2][3] + M.M[3][3];
 
-   return VecSet((M.M[0][0] * V.X + M.M[0][1] * V.Y + M.M[0][2] * V.Z) / w, 
-                (M.M[1][0] * V.X + M.M[1][1] * V.Y + M.M[1][2] * V.Z) / w,
-                (M.M[2][0] * V.X + M.M[2][1] * V.Y + M.M[2][2] * V.Z) / w);
+   return VecSet((M.M[0][0] * V.X + M.M[1][0] * V.Y + M.M[2][0] * V.Z + M.M[3][0]) / w, 
+                (M.M[0][1] * V.X + M.M[1][1] * V.Y + M.M[2][1] * V.Z + M.M[3][1]) / w,
+                (M.M[0][2] * V.X + M.M[1][2] * V.Y + M.M[2][2] * V.Z + M.M[3][2]) / w);
 }
 
-__inline MATR MatrResult( MATR T, MATR V, MATR VFM )
+__inline MATR MatrResult( MATR V, MATR VFM )
 { 
-  return MatrMulMatr(MatrMulMatr(T, V), VFM);
+  return MatrMulMatr(V, VFM);
 }
+#endif /* __VEC_H_ */
