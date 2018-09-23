@@ -27,7 +27,7 @@ typedef struct tagMATR
   DBL M[4][4];
 } MATR;
 
-static MATR UnitMatrix = 
+#define UnitMatrix 
 {
   {
     {1, 0, 0, 0},
@@ -35,7 +35,7 @@ static MATR UnitMatrix =
     {0, 0, 1, 0},
     {0, 0, 0, 1}
   }
-};
+}
 
 /* Vector set function.
  * ARGUMENTS:

@@ -15,8 +15,22 @@
 #define WND_CLASS_NAME "My window class"
 #define PI 3.14159265358979323846
 
+typedef float FLT;
+
 /* Forward references */
 LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam );
+
+/* Convert to DWORD from 3f color function.
+ * ARGUMENTS:
+ *   - 3 colors (red, green and blue compmonents):
+ *         FLT r, g, b;
+ * RETURNS:
+ *   (DWORD) redult color.
+ */
+DWORD ToDword( FLT r, FLT g, FLT b )
+{
+  return RGB(r * 255, g * 255, b * 255);
+} /* End of 'ToDword' function */
 
 /* Turn full screen window mode function.
  * ARGUMENTS:
@@ -172,16 +186,16 @@ INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine,
 LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
 {
   HDC hDc;  
-  POINT pt;
+  POINT pt, p;
   PAINTSTRUCT ps;
   BITMAP bm;
-  INT x, y, len;
+  INT len;
   SYSTEMTIME tm;
   MINMAXINFO *minmax;
   CREATESTRUCT *cs;
   CHAR *week[7] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
   static SIZE s;
-  static INT w, h;
+  static INT w, h, x, y;
   static HBITMAP hBm, hBmAnd, hBmXor;
   static HDC hMemDc, hDcAnd, hDcXor;
   static HFONT hFnt;
@@ -220,20 +234,30 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
     SendMessage(hWnd, WM_TIMER, 0, 0);
     return 0;
   case WM_KEYDOWN:
-    if (wParam == VK_ESCAPE)
-      SendMessage(hWnd, WM_CLOSE, 0, 0);
+    SendMessage(hWnd, WM_CLOSE, 0, 0);
     return 0;
   case WM_MOUSEMOVE:
+    GetCursorPos(&p);
+
+    if (fabs(p.x - x) > 3 || fabs(p.y - y) > 3)
+      SendMessage(hWnd, WM_CLOSE, 0, 0);
+    return 0;
+  case WM_LBUTTONDOWN:
+    SendMessage(hWnd, WM_CLOSE, 0, 0);
+    return 0;
+  case WM_RBUTTONDOWN:
     SendMessage(hWnd, WM_CLOSE, 0, 0);
     return 0;
   case WM_TIMER:
     GetCursorPos(&pt);
     ScreenToClient(hWnd, &pt);
+
+    x = pt.x, y = pt.y;
     hDc = hMemDc;
     SelectObject(hDc, GetStockObject(DC_PEN));
     SelectObject(hDc, GetStockObject(DC_BRUSH));
     SetDCPenColor(hDc, RGB(255, 255, 255));
-    SetDCBrushColor(hDc, RGB(0, 255, 255));
+    SetDCBrushColor(hDc, ToDword(0.3, 0.5, 0.7));
     Rectangle(hDc, 0, 0, w, h);
     GetObject(hBmAnd, sizeof(BITMAP), &bm);
     BitBlt(hDc, w / 2 - bm.bmWidth / 2, h / 2 - bm.bmHeight / 2, bm.bmWidth, bm.bmHeight, hDcAnd, 0, 0, SRCAND);
@@ -247,7 +271,7 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
     SetBkMode(hDc, TRANSPARENT);
     TextOut(hDc, w / 2 - s.cx / 2, h - 70, Buf, len);
     SetDCPenColor(hDc, RGB(255, 255, 255));
-    SetDCBrushColor(hDc, RGB(0, 255, 255));
+    SetDCBrushColor(hDc, RGB(192, 192, 192));
     Ellipse(hDc, w / 2- 35, h / 2 - 35, w / 2 + 35, h / 2 + 35);
 
     InvalidateRect(hWnd, NULL, FALSE);
@@ -266,8 +290,7 @@ LRESULT CALLBACK MyWindowFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam
   case WM_ERASEBKGND:
     return 1;
   case WM_CLOSE:
-    if (MessageBox(hWnd, "Are you sure to close window?", "Quit", MB_YESNO | MB_DEFBUTTON2 | MB_ICONINFORMATION ) == IDYES)
-      SendMessage(hWnd, WM_DESTROY, 0, 0);
+    SendMessage(hWnd, WM_DESTROY, 0, 0);
     return 0;
   case WM_DESTROY:
     DeleteObject(hBm);
