@@ -26,7 +26,7 @@
 dert::plane_tex_mods::plane_tex_mods( const std::string &FileName )
 {
   Img = new image;
-  Img->Load("BIN/TEXTURES/" + FileName);
+  Img->Load("RES/TEXTURES/" + FileName);
 } /* End of 'plane_tex_mods' function */
  
 /* Plane texture modificator apply function.
@@ -60,7 +60,7 @@ dert::plane_tex_mods::~plane_tex_mods( VOID )
 dert::sphere_tex_mods::sphere_tex_mods( const std::string &FileName )
 {
   Img = new image;
-  Img->Load("BIN/TEXTURES/" + FileName);
+  Img->Load("RES/TEXTURES/" + FileName);
 } /* End of 'sphere_tex_mods' function */
 
 /* Sphere texture modificator apply function.
@@ -113,7 +113,7 @@ dert::sphere_tex_mods::~sphere_tex_mods( VOID )
 dert::cylin_tex_mods::cylin_tex_mods( const std::string &FileName )
 {
   Img = new image;
-  Img->Load("BIN/TEXTURES/" + FileName);
+  Img->Load("RES/TEXTURES/" + FileName);
 } /* End of 'cylin_tex_mods' function */
 
 /* Cylinder texture modificator apply function.
@@ -157,7 +157,7 @@ dert::cylin_tex_mods::~cylin_tex_mods( VOID )
 dert::torus_tex_mods::torus_tex_mods( const std::string &FileName )
 {
   Img = new image;
-  Img->Load("BIN/TEXTURES/" + FileName);
+  Img->Load("RES/TEXTURES/" + FileName);
 } /* End of 'torus_tex_mods' function */
 
 /* Torus texture modificator apply function.
