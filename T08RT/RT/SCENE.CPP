@@ -114,11 +114,11 @@ VOID dert::scene::Render( camera &Cam, image *Img )
                             Img->PutPixel(xs / 2, ys / 2, image::ToDWORD(Result));
                           }
                       });
-    //T[i].join();
+    T[i].join();
   }
 
-  for (auto &t : T)
-    t.join();
+  /*for (auto &t : T)
+    t.join();*/
 } /* End of 'Render' function */
 
 
