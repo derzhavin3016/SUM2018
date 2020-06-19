@@ -35,7 +35,7 @@
     - `BOX` -  параллелепипед, со сторонами, параллельными координатным плоскостям. Задаётся двумя противоположными вершинами.
     - `PLANE` - плоскость. Задаётся через нормаль и расстояние, нормаль и точку на плоскости, а также через три точки.
     - `QUAD` - поверхности второго порядка, задаются следующим уравнением:  
-    ![QUAD_EQ](https://2.downloader.disk.yandex.ru/preview/f4368c55b291e5776b38d70c0be0dfc3b118d97422bc8a8f33c70f5002c275ae/inf/c2NEcncUwkT8RwuQCJgW5KEtEQP1JC9T0ppRdb4K8vm6u1jpX4t1TDwXgU6AHc7gD8zipeiql2yyOEQ9WbxcXg%3D%3D?uid=101462113&filename=%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%20%D0%BE%D1%82%202020-06-19%2019-02-26.png&disposition=inline&hash=&limit=0&content_type=image%2Fpng&owner_uid=101462113&tknv=v2&size=1265x889),  
+    ![QUAD_EQ](eq.png),  
     где `A`, `B`, `C`, `D`, `E`, `F`, `G`, `H`, `I`, `J` - параметрические коэффициенты поверхности.
     - `SPHERE` - сфера. Задаётся радиусом и центром.
     - `TORUS` - тор с центром в начале координат. Задаётся двумя радиусами (внешним и внутренним).
@@ -58,5 +58,5 @@
   
 Также был добавлен простой антиалиасинг - создание изображение в четыре раза большего разрешения, затем усреднение цвета соседних четырёх пикселей.
 Пример работы программы:
-![DESKTOP](https://2.downloader.disk.yandex.ru/preview/5cf762a3627560c78c5aea1e864884dc697b6069026c40aa61b46168abc767db/inf/mtL0RW6Ea6dnscXAZacQbedDx4isbHxhwtFTivI6AozfaeQTxvFI6p9Gd1hwOtsfMWE7Gy6TfQhUdl_RVl9Fxg%3D%3D?uid=101462113&filename=DESKTOP.PNG&disposition=inline&hash=&limit=0&content_type=image%2Fpng&owner_uid=101462113&tknv=v2&size=1265x889)  
+![](DESKTOP.PNG)  
 
