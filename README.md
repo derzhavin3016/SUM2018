@@ -1,4 +1,9 @@
 # SUM2018
+
+![GitHub repo size](https://img.shields.io/github/repo-size/derzhavin3016/SUM2018?style=plastic)
+![GitHub last commit](https://img.shields.io/github/last-commit/derzhavin3016/SUM2018?color=red&style=plastic)
+![GitHub lines](https://img.shields.io/tokei/lines/github/derzhavin3016/SUM2018?style=plastic)
+
 Репозиторий с проектами, написанными в ходе летней практики, а также в летнем программистском лагере Computer Graphics Support Group при 
 Санкт-Петербургском Губернаторском физико-математическом лицее
 №30.  
