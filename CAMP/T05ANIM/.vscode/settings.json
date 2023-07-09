@@ -1,0 +1,5 @@
+{
+  "cmake.generator": "",
+  "cmake.exportCompileCommandsFile": true,
+  "C_Cpp.intelliSenseEngine": "default",
+}
