@@ -6,7 +6,10 @@
 
 // #include "ANIM/UNIT/U_CONTROL.H"
 
+
 #include <windows.h>
+
+#include "Math/mthdef.hpp"
 
 /* The main program function.
  * ARGUMENTS:
