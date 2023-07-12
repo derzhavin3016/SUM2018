@@ -7,28 +7,36 @@
 #ifndef __VEC_H_
 #define __VEC_H_
 
-#include "mthdef.hpp"
+#include <array>
+#include <concepts>
 #include <iostream>
+#include <numeric>
+
+#include "mthdef.hpp"
 
 namespace mth
 {
-/* Vector class template */
-template <Number T>
-struct Vec
+namespace detail
 {
-  T x{};
-  T y{};
-  T z{};
+/* Vector class base template */
+template <Number T, std::size_t numCoords>
+class VecImpl
+{
+private:
+  static_assert(numCoords >= 2 && numCoords <= 4, "Number of coordinates must be in range [2, 4]");
 
+  std::array<T, numCoords> coords{};
+
+public:
+  VecImpl() = default;
 
   /* Vector constructor method */
-  Vec(T a, T b, T c) : x(a), y(b), z(c)
-  {}
-
-  /* Vector constructor method with similar coordinates */
-  explicit Vec(T a = T{}) : x(a), y(a), z(a)
-  {}
-
+  template <std::convertible_to<T>... Arg>
+  explicit VecImpl(Arg... arg) noexcept : coords{static_cast<T>(arg)...}
+  {
+    static_assert(sizeof...(arg) == numCoords || sizeof...(arg) == 1,
+                  "Invalid number of coordinates in vector ctor");
+  }
 
   /* Vector add and equal vector (reload +=) function
    * ARGUMENTS:
@@ -37,22 +45,19 @@ struct Vec
    * RETURNS:
    *       (vec<T> &) link to result vector;
    */
-  Vec &operator+=(const Vec &V)
+  VecImpl &operator+=(const VecImpl &V) noexcept
   {
-    x += V.x;
-    y += V.y;
-    z += V.z;
-    return *this;
+    return transform([&V](const auto &ci, auto i) { return ci + V[i]; });
   } /* End of 'operator+=' function */
 
-  T operator[](int i) const
+  T operator[](std::size_t i) const noexcept
   {
-    return *(&x + i);
+    return coords[i];
   }
 
-  T &operator[](int i)
+  T &operator[](std::size_t i) noexcept
   {
-    return *(&x + i);
+    return coords[i];
   }
 
   /* Vector substraction and equal vector (reload -=) function
@@ -62,49 +67,106 @@ struct Vec
    * RETURNS:
    *       (vec<T> &) link to result vector;
    */
-  Vec &operator-=(const Vec &V)
+  VecImpl &operator-=(const VecImpl &V) noexcept
   {
-    x -= V.x;
-    y -= V.y;
-    z -= V.z;
+    return transform([&V](const auto &ci, auto i) { return ci - V[i]; });
+  } /* End of 'operator-=' function */
+
+  VecImpl &operator*=(const VecImpl &V) noexcept
+  {
+    return transform([&V](const auto &ci, auto i) { return ci * V[i]; });
+  }
+
+  T length(VOID) const noexcept
+  {
+    return sqrt(length2());
+  }
+
+  T dot(const VecImpl &V) const noexcept
+  {
+    return std::inner_product(coords.cbegin(), coords.cend(), coords.cbegin(), T{});
+  }
+
+  VecImpl &operator*=(T number) noexcept
+  {
+    return transform([number](auto ci, auto) { return ci * number; });
+  }
+
+  VecImpl &operator/=(T number) noexcept
+  {
+    return operator*=(1. / number);
+  }
+
+  VecImpl normalize(VOID) const noexcept
+  {
+    auto len = length();
+    auto V = *this;
+
+    if (len != 0 && len != 1)
+      V /= len;
+
+    return V;
+  }
+
+  static auto normalizing(const VecImpl &V) noexcept
+  {
+    return V.normalize();
+  }
+
+  auto length2(VOID)
+  {
+    return dot(*this);
+  }
+
+  auto distance(const VecImpl &V)
+  {
+    return (*this - V).length();
+  }
+
+private:
+  template <typename Transformer>
+  VecImpl &transform(Transformer trans)
+  {
+    for (std::size_t i = 0; i < coords.size(); ++i)
+    {
+      auto coord = coords[i];
+      coords[i] = trans(coord, i);
+    }
+
     return *this;
-  } /* End of 'operator+=' function */
+  }
+};
 
-  Vec &operator*=(const Vec &V)
+template <typename... Args>
+struct always_false : std::false_type
+{};
+
+template <Number T, std::size_t numCoords>
+struct Vec final
+{
+  static_assert(always_false<T>::value, "Unsupported coords amount for vector");
+};
+
+template <Number T>
+struct Vec<T, 3> : VecImpl<T, 3>
+{
+  using VecImpl<T, 3>::VecImpl;
+  T x() const noexcept
   {
-    x *= V.x;
-    y *= V.y;
-    z *= V.z;
-    return *this;
+    return this->operator[](0);
+  }
+  T y() const noexcept
+  {
+    return this->operator[](1);
+  }
+  T z() const noexcept
+  {
+    return this->operator[](2);
   }
 
-  T length(VOID) const
+  Vec cross(const Vec &V) const noexcept
   {
-    return sqrt(x * x + y * y + z * z);
-  }
-
-  T dot(const Vec &V) const
-  {
-    return x * V.x + y * V.y + z * V.z;
-  }
-
-  Vec cross(const vec &V) const
-  {
-    return vec(y * V.z - z * V.y, z * V.x - x * V.z, x * V.y - y * V.x);
-  }
-
-  vec<T> operator*(const vec<T> &V) const
-  {
-    return vec<T>(x * V.x, y * V.y, z * V.z);
-  }
-
-  vec<T> operator*(const matr<T> &M) const
-  {
-    T w = x * M.A[0][3] + y * M.A[1][3] + z * M.A[2][3] + M.A[3][3];
-
-    return vec<T>((M.A[0][0] * x + M.A[1][0] * y + M.A[2][0] * z + M.A[3][0]) / w,
-                  (M.A[0][1] * x + M.A[1][1] * y + M.A[2][1] * z + M.A[3][1]) / w,
-                  (M.A[0][2] * x + M.A[1][2] * y + M.A[2][2] * z + M.A[3][2]) / w);
+    return Vec(y() * V.z() - z() * V.y(), z() * V.x() - x() * V.z(), x() * V.y() - y() * V.x());
   }
 
   /* Vector transform function.
@@ -114,434 +176,60 @@ struct Vec
    * RETURNS:
    *   (VEC) result vector.
    */
-  vec<T> VecTrans(const matr<T> &M) const
-  {
-    return vec<T>(M.A[0][0] * x + M.A[0][1] * y + M.A[0][2] * z,
-                  M.A[1][0] * x + M.A[1][1] * y + M.A[1][2] * z,
-                  M.A[2][0] * x + M.A[2][1] * y + M.A[2][2] * z);
-  } /* End of 'VecTrans' function */
-
-  vec<T> operator*(const T number) const
-  {
-    return vec<T>(x * number, y * number, z * number);
-  }
-
-  vec<T> operator/(const T number) const
-  {
-    return vec<T>(x / number, y / number, z / number);
-  }
-
-  vec<T> &operator*=(const T number)
-  {
-    x *= number;
-    y *= number;
-    z *= number;
-    return *this;
-  }
-
-  vec<T> &operator/=(const T number)
-  {
-    x /= number;
-    y /= number;
-    z /= number;
-    return *this;
-  }
-
-  vec<T> Normalize(VOID) const
-  {
-    T len = !(*this);
-    vec<T> V = *this;
-    if (len == 0 || len == 1)
-      return V;
-    V /= len;
-    return V;
-  }
-
-  static vec<T> Normalizing(const vec<T> &V)
-  {
-
-    T len = !V;
-    if (len == 0 || len == 1)
-      return V;
-    return V / len;
-  }
-
-  T Length2(VOID)
-  {
-    return (*this) & (*this);
-  }
-
-  T Distance(const vec<T> &V)
-  {
-    return !(*this - V);
-  }
+  // Vec vecTrans(const matr<T> &M) const noexcept
+  // {
+  //   return Vec(M.A[0][0] * x() + M.A[0][1] * y() + M.A[0][2] * z(),
+  //              M.A[1][0] * x() + M.A[1][1] * y() + M.A[1][2] * z(),
+  //              M.A[2][0] * x() + M.A[2][1] * y() + M.A[2][2] * z());
+  // } /* End of 'VecTrans' function */
 };
 
-template <class T>
-class vec2
+template <Number T>
+struct Vec<T, 4> : VecImpl<T, 4>
 {
-protected:
-  T x, y;
-
-public:
-  /* Vector constructor method */
-  vec2(T a, T b) : x(a), y(b)
-  {}
-
-  /* Vector constructor method with similar coordinates */
-  explicit vec2(T a = 0) : x(a), y(a)
-  {}
-
-  /* Vector add vector (reload +) function
-   * ARGUMENTS:
-   *   - link to vector:
-   *       vec2<T> &V;
-   * RETURNS:
-   *       (vec2<T>) result vector;
-   */
-  vec2<T> operator+(const vec2<T> &V) const
+  using VecImpl<T, 4>::VecImpl;
+  T x() const noexcept
   {
-    return vec2<T>(x + V.x, y + V.y);
-  } /* End of 'operator+' function */
-
-  /* Vector subtraction vector (reload -) function
-   * ARGUMENTS:
-   *   - link to vector:
-   *       vec2<T> &V;
-   * RETURNS:
-   *       (vec2<T>) result vector;
-   */
-  vec2<T> operator-(const vec2<T> &V) const
-  {
-    return vec2<T>(x - V.x, y - V.y);
-  } /* End of 'operator-' function */
-
-  /* Vector negative vector (reload -) function
-   * ARGUMENTS: NONE.
-   * RETURNS:
-   *       (vec2<T> &) link to result vector;
-   */
-  vec2<T> &operator-(VOID)
-  {
-    x = -x;
-    y = -y;
-    return *this;
-  } /* End of 'operator-' function */
-
-  /* Vector equal vector (reload =) function
-   * ARGUMENTS:
-   *   - link to vector:
-   *       vec2<T> &V;
-   * RETURNS:
-   *       (vec2<T> &) link to result vector;
-   */
-  vec2<T> &operator=(const vec2<T> &V)
-  {
-    x = V.x;
-    y = V.y;
-    return *this;
-  } /* End of 'operator=' function */
-
-  /* Vector add and equal vector (reload +=) function
-   * ARGUMENTS:
-   *   - link to vector:
-   *       vec2<T> &V;
-   * RETURNS:
-   *       (vec2<T> &) link to result vector;
-   */
-  vec2<T> &operator+=(const vec2<T> &V)
-  {
-    x += V.x;
-    y += V.y;
-    return *this;
-  } /* End of 'operator+=' function */
-
-  T operator[](int i) const
-  {
-    return *(&x + i);
+    return this->operator[](0);
   }
-
-  T &operator[](int i)
+  T y() const noexcept
   {
-    return *(&x + i);
+    return this->operator[](1);
   }
-
-  /* Vector substraction and equal vector (reload -=) function
-   * ARGUMENTS:
-   *   - link to vector:
-   *       vec2<T> &V;
-   * RETURNS:
-   *       (vec2<T> &) link to result vector;
-   */
-  vec2<T> &operator-=(const vec2<T> &V)
+  T z() const noexcept
   {
-    x -= V.x;
-    y -= V.y;
-    return *this;
-  } /* End of 'operator+=' function */
-
-  vec2<T> &operator*=(const vec2<T> &V)
-  {
-    x *= V.x;
-    y *= V.y;
-    return *this;
+    return this->operator[](2);
   }
-
-  T operator!(VOID) const
+  T w() const noexcept
   {
-    return sqrt(x * x + y * y);
-  }
-
-  T operator&(const vec2<T> &V) const
-  {
-    return x * V.x + y * V.y;
-  }
-
-  vec2<T> operator*(const vec2<T> &V) const
-  {
-    return vec2<T>(x * V.x, y * V.y);
-  }
-
-  vec2<T> operator*(const T number) const
-  {
-    return vec2<T>(x * number, y * number);
-  }
-
-  vec2<T> operator/(const T number) const
-  {
-    return vec2<T>(x / number, y / number);
-  }
-
-  vec2<T> &operator*=(const T number)
-  {
-    x *= number;
-    y *= number;
-    return *this;
-  }
-
-  vec2<T> &operator/=(const T number)
-  {
-    x /= number;
-    y /= number;
-    return *this;
-  }
-
-  vec2<T> &Normalize(VOID)
-  {
-    T len = !(*this);
-    if (len == 0 || len == 0)
-      return *this;
-    *this /= len;
-    return *this;
-  }
-
-  vec2<T> &Normalize(const vec2<T> &V)
-  {
-    vec2<T> X = V;
-    *this = X.Normalize();
-    return *this;
-  }
-
-  T Length2(VOID)
-  {
-    return !(*this) * !(*this);
-  }
-
-  T Distance(const vec2<T> &V)
-  {
-    return !(*this - V);
+    return this->operator[](3);
   }
 };
 
-template <class T>
-class vec4
+template <Number T>
+struct Vec<T, 2> : VecImpl<T, 2>
 {
-protected:
-  T x, y, z, w;
-
-public:
-  /* Vector constructor method */
-  vec4(T a, T b, T c, T d) : x(a), y(b), z(c), w(d)
-  {}
-
-  /* Vector constructor method with similar coordinates */
-  explicit vec4(T a = 0) : x(a), y(a), z(a), w(a)
-  {}
-
-  /* Vector add vector (reload +) function
-   * ARGUMENTS:
-   *   - link to vector:
-   *       vec4<T> &V;
-   * RETURNS:
-   *       (vec4<T>) result vector;
-   */
-  vec4<T> operator+(const vec4<T> &V) const
+  using VecImpl<T, 2>::VecImpl;
+  T x() const noexcept
   {
-    return vec4<T>(x + V.x, y + V.y, z + V.z, w + V.w);
-  } /* End of 'operator+' function */
-
-  /* Vector subtraction vector (reload -) function
-   * ARGUMENTS:
-   *   - link to vector:
-   *       vec4<T> &V;
-   * RETURNS:
-   *       (vec4<T>) result vector;
-   */
-  vec4<T> operator-(const vec4<T> &V) const
-  {
-    return vec4<T>(x - V.x, y - V.y, z - V.z, w - V.w);
-  } /* End of 'operator-' function */
-
-  /* Vector negative vector (reload -) function
-   * ARGUMENTS: NONE.
-   * RETURNS:
-   *       (vec4<T> &) link to result vector;
-   */
-  vec4<T> &operator-(VOID)
-  {
-    x = -x;
-    y = -y;
-    z = -z;
-    w = -w;
-    return *this;
-  } /* End of 'operator-' function */
-
-  /* Vector equal vector (reload =) function
-   * ARGUMENTS:
-   *   - link to vector:
-   *       vec4<T> &V;
-   * RETURNS:
-   *       (vec4<T> &) link to result vector;
-   */
-  vec4<T> &operator=(const vec4<T> &V)
-  {
-    x = V.x;
-    y = V.y;
-    z = V.z;
-    w = V.w;
-    return *this;
-  } /* End of 'operator=' function */
-
-  /* Vector add and equal vector (reload +=) function
-   * ARGUMENTS:
-   *   - link to vector:
-   *       vec4<T> &V;
-   * RETURNS:
-   *       (vec4<T> &) link to result vector;
-   */
-  vec4<T> &operator+=(const vec4<T> &V)
-  {
-    x += V.x;
-    y += V.y;
-    z += V.z;
-    w += V.w;
-    return *this;
-  } /* End of 'operator+=' function */
-
-  T operator[](int i) const
-  {
-    return *(&x + i);
+    return this->operator[](0);
   }
-
-  T &operator[](int i)
+  T y() const noexcept
   {
-    return *(&x + i);
-  }
-
-  /* Vector substraction and equal vector (reload -=) function
-   * ARGUMENTS:
-   *   - link to vector:
-   *       vec4<T> &V;
-   * RETURNS:
-   *       (vec4<T> &) link to result vector;
-   */
-  vec4<T> &operator-=(const vec4<T> &V)
-  {
-    x -= V.x;
-    y -= V.y;
-    z -= V.z;
-    w -= V.w;
-    return *this;
-  } /* End of 'operator+=' function */
-
-  vec4<T> &operator*=(const vec4<T> &V)
-  {
-    x *= V.x;
-    y *= V.y;
-    z *= V.z;
-    w *= V.w;
-    return *this;
-  }
-
-  T operator!(VOID) const
-  {
-    return sqrt(x * x + y * y + z * z + w * w);
-  }
-
-  T operator&(const vec4<T> &V) const
-  {
-    return x * V.x + y * V.y + z * V.z + w * V.w;
-  }
-
-  vec4<T> operator*(const vec4<T> &V) const
-  {
-    return vec4<T>(x * V.x, y * V.y, z * V.z, w * V.w);
-  }
-
-  vec4<T> operator*(const T number) const
-  {
-    return vec4<T>(x * number, y * number, z * number, w * number);
-  }
-
-  vec4<T> operator/(const T number) const
-  {
-    return vec4<T>(x / number, y / number, z / number, w / number);
-  }
-
-  vec4<T> &operator*=(const T number)
-  {
-    x *= number;
-    y *= number;
-    z *= number;
-    w *= number;
-    return *this;
-  }
-
-  vec4<T> &operator/=(const T number)
-  {
-    x /= number;
-    y /= number;
-    z /= number;
-    w /= number;
-    return *this;
-  }
-
-  vec4<T> &Normalize(VOID)
-  {
-    T len = !(*this);
-    if (len == 0 || len == 0)
-      return *this;
-    *this /= len;
-    return *this;
-  }
-
-  vec4<T> &Normalize(const vec4<T> &V)
-  {
-    vec4<T> X = V;
-    *this = X.Normalize();
-    return *this;
-  }
-
-  T Length2(VOID)
-  {
-    return !(*this) * !(*this);
-  }
-
-  T Distance(const vec4<T> &V)
-  {
-    return !(*this - V);
+    return this->operator[](1);
   }
 };
+} // namespace detail
+
+template <Number T>
+using Vec2 = detail::Vec<T, 2>;
+
+template <Number T>
+using Vec = detail::Vec<T, 3>;
+
+template <Number T>
+using Vec4 = detail::Vec<T, 4>;
+
 } // namespace mth
 
 #endif /* __VEC_H_ */
