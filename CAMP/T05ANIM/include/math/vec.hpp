@@ -72,6 +72,13 @@ public:
     return transform([&V](const auto &ci, auto i) { return ci - V[i]; });
   } /* End of 'operator-=' function */
 
+  auto operator-() const noexcept
+  {
+    auto tmp = *this;
+    tmp.transform([](auto ci, auto i) { return -ci; });
+    return tmp;
+  }
+
   VecImpl &operator*=(const VecImpl &V) noexcept
   {
     return transform([&V](const auto &ci, auto i) { return ci * V[i]; });
@@ -136,6 +143,54 @@ private:
     return *this;
   }
 };
+
+template <Number T, std::size_t N>
+auto operator+(const VecImpl<T, N> &lhs, const VecImpl<T, N> &rhs) noexcept
+{
+  auto tmp = lhs;
+  tmp += rhs;
+  return tmp;
+}
+
+template <Number T, std::size_t N>
+auto operator-(const VecImpl<T, N> &lhs, const VecImpl<T, N> &rhs) noexcept
+{
+  auto tmp = lhs;
+  tmp -= rhs;
+  return tmp;
+}
+
+template <Number T, std::size_t N>
+auto operator*(const VecImpl<T, N> &lhs, const VecImpl<T, N> &rhs) noexcept
+{
+  auto tmp = lhs;
+  tmp *= rhs;
+  return tmp;
+}
+
+template <Number T, std::size_t N>
+auto operator*(const VecImpl<T, N> &lhs, T rhs) noexcept
+{
+  auto tmp = lhs;
+  tmp *= rhs;
+  return tmp;
+}
+
+template <Number T, std::size_t N>
+auto operator/(const VecImpl<T, N> &lhs, T rhs) noexcept
+{
+  auto tmp = lhs;
+  tmp /= rhs;
+  return tmp;
+}
+
+template <Number T, std::size_t N>
+auto operator*(T lhs, const VecImpl<T, N> &rhs) noexcept
+{
+  auto tmp = rhs;
+  tmp *= lhs;
+  return tmp;
+}
 
 template <typename... Args>
 struct always_false : std::false_type
