@@ -94,14 +94,16 @@ public:
     return std::inner_product(coords.cbegin(), coords.cend(), coords.cbegin(), T{});
   }
 
-  VecImpl &operator*=(T number) noexcept
+  template <std::convertible_to<T> U>
+  VecImpl &operator*=(U number) noexcept
   {
     return transform([number](auto ci, auto) { return ci * number; });
   }
 
-  VecImpl &operator/=(T number) noexcept
+  template <std::convertible_to<T> U>
+  VecImpl &operator/=(U number) noexcept
   {
-    return operator*=(1. / number);
+    return operator*=(static_cast<T>(1) / number);
   }
 
   VecImpl normalize(VOID) const noexcept
@@ -168,16 +170,16 @@ auto operator*(const VecImpl<T, N> &lhs, const VecImpl<T, N> &rhs) noexcept
   return tmp;
 }
 
-template <Number T, std::size_t N>
-auto operator*(const VecImpl<T, N> &lhs, T rhs) noexcept
+template <Number T, std::size_t N, std::convertible_to<T> U>
+auto operator*(const VecImpl<T, N> &lhs, U rhs) noexcept
 {
   auto tmp = lhs;
   tmp *= rhs;
   return tmp;
 }
 
-template <Number T, std::size_t N>
-auto operator/(const VecImpl<T, N> &lhs, T rhs) noexcept
+template <Number T, std::size_t N, std::convertible_to<T> U>
+auto operator/(const VecImpl<T, N> &lhs, U rhs) noexcept
 {
   auto tmp = lhs;
   tmp /= rhs;

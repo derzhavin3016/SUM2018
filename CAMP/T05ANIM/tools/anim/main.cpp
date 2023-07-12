@@ -26,7 +26,7 @@
 INT WINAPI WinMain([[maybe_unused]] HINSTANCE hInstance, [[maybe_unused]] HINSTANCE hPrevInstance,
                    [[maybe_unused]] CHAR *CmdLine, [[maybe_unused]] INT ShowCmd)
 {
-  mth::Vec<double> v{1, 2};
+  mth::Vec<double> v{1, 2, 3};
 } /* End of 'WinMain' function */
 
 /* End of 'Main.cpp' file */
