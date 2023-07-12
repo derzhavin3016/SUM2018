@@ -1,8 +1,24 @@
 cmake_minimum_required(VERSION 3.16)
+
+if("${CMAKE_BINARY_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
+  message(
+    FATAL_ERROR
+      "In-source builds are disabled.
+  Please create a subfolder and use `cmake ..` inside it.
+  NOTE: cmake will now create CMakeCache.txt and CMakeFiles/*.
+  You must delete them, or cmake will refuse to work.")
+endif()
+
 project(T05ANIM)
 
-add_executable(anim main.cpp)
-set_target_properties(anim PROPERTIES WIN32_EXECUTABLE TRUE)
+add_subdirectory(tools)
 
-target_compile_options(anim PRIVATE /W4)
-target_compile_features(anim PRIVATE cxx_std_20)
+set(TARGETS)
+list(APPEND TARGETS ${LIBLIST} ${TOOLLIST})
+
+foreach(TARGET ${TARGETS})
+  target_include_directories(${TARGET} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+  target_compile_features(${TARGET} PRIVATE cxx_std_20)
+
+  target_compile_options(${TARGET} PRIVATE /W4)
+endforeach()

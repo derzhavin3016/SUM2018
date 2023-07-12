@@ -6,7 +6,6 @@
 
 // #include "ANIM/UNIT/U_CONTROL.H"
 
-
 #include <windows.h>
 
 #include "Math/mthdef.hpp"
@@ -24,7 +23,8 @@
  * RETURNS:
  *   (INT) Error level for operation system (0 for success).
  */
-INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine, INT ShowCmd)
+INT WINAPI WinMain([[maybe_unused]] HINSTANCE hInstance, [[maybe_unused]] HINSTANCE hPrevInstance,
+                   [[maybe_unused]] CHAR *CmdLine, [[maybe_unused]] INT ShowCmd)
 {} /* End of 'WinMain' function */
 
 /* End of 'Main.cpp' file */
