@@ -9,7 +9,11 @@ if("${CMAKE_BINARY_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
   You must delete them, or cmake will refuse to work.")
 endif()
 
-project(T05ANIM)
+include(cmake/CPM.cmake)
+include(cmake/list_dirs.cmake)
+include(cmake/upd_tar_list.cmake)
+
+project(T05ANIM LANGUAGES CXX)
 
 add_subdirectory(tools)
 
@@ -22,3 +26,6 @@ foreach(TARGET ${TARGETS})
 
   target_compile_options(${TARGET} PRIVATE /W4)
 endforeach()
+
+enable_testing()
+add_subdirectory(test)
