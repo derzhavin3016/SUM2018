@@ -4,8 +4,8 @@
  * PURPOSE
  */
 
-#ifndef __VEC_H_
-#define __VEC_H_
+#ifndef __INCLUDE_MATH_VEC_HPP__
+#define __INCLUDE_MATH_VEC_HPP__
 
 #include <array>
 #include <concepts>
@@ -33,13 +33,18 @@ private:
 public:
   Vec() = default;
 
+  template <std::convertible_to<T> Arg>
+  explicit Vec(Arg arg) noexcept
+  {
+    coords.fill(arg);
+  }
+
   /* Vector constructor method */
   template <std::convertible_to<T>... Arg>
-  explicit Vec(Arg... arg) noexcept : coords{static_cast<T>(arg)...}
-  {
-    static_assert(sizeof...(arg) == numCoords || sizeof...(arg) == 1,
-                  "Invalid number of coordinates in vector ctor");
-  }
+  Vec(Arg... arg) noexcept
+    requires(sizeof...(arg) == numCoords)
+    : coords{static_cast<T>(arg)...}
+  {}
 
   /* Vector add and equal vector (reload +=) function
    * ARGUMENTS:
@@ -101,11 +106,6 @@ public:
     return tmp;
   }
 
-  Vec &operator*=(const Vec &V) noexcept
-  {
-    return transform([&V](const auto &ci, auto i) { return ci * V[i]; });
-  }
-
   [[nodiscard]] auto length() const noexcept
   {
     return sqrt(length2());
@@ -121,13 +121,13 @@ public:
     return Vec(y() * V.z() - z() * V.y(), z() * V.x() - x() * V.z(), x() * V.y() - y() * V.x());
   }
 
-  template <std::convertible_to<T> U>
+  template <Number U>
   Vec &operator*=(U number) noexcept
   {
     return transform([number](auto ci, auto) { return ci * number; });
   }
 
-  template <std::convertible_to<T> U>
+  template <Number U>
   Vec &operator/=(U number) noexcept
   {
     return operator*=(static_cast<T>(1) / number);
@@ -201,14 +201,6 @@ auto operator-(const Vec<T, N> &lhs, const Vec<T, N> &rhs) noexcept
   return tmp;
 }
 
-template <std::floating_point T, std::size_t N>
-auto operator*(const Vec<T, N> &lhs, const Vec<T, N> &rhs) noexcept
-{
-  auto tmp = lhs;
-  tmp *= rhs;
-  return tmp;
-}
-
 template <std::floating_point T, std::size_t N, std::convertible_to<T> U>
 auto operator*(const Vec<T, N> &lhs, U rhs) noexcept
 {
@@ -217,7 +209,7 @@ auto operator*(const Vec<T, N> &lhs, U rhs) noexcept
   return tmp;
 }
 
-template <std::floating_point T, std::size_t N, std::convertible_to<T> U>
+template <std::floating_point T, std::size_t N, Number U>
 auto operator/(const Vec<T, N> &lhs, U rhs) noexcept
 {
   auto tmp = lhs;
@@ -225,8 +217,8 @@ auto operator/(const Vec<T, N> &lhs, U rhs) noexcept
   return tmp;
 }
 
-template <std::floating_point T, std::size_t N>
-auto operator*(T lhs, const Vec<T, N> &rhs) noexcept
+template <std::floating_point T, std::size_t N, Number U>
+auto operator*(U lhs, const Vec<T, N> &rhs) noexcept
 {
   auto tmp = rhs;
   tmp *= lhs;
@@ -245,6 +237,6 @@ using Vec4 = detail::Vec<T, 4>;
 
 } // namespace mth
 
-#endif /* __VEC_H_ */
+#endif // __INCLUDE_MATH_VEC_HPP__
 
 /* End of 'vec.h' file */

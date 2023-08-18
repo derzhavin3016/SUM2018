@@ -14,6 +14,18 @@ TEST(vec, ctor)
   EXPECT_EQ(v[2], 3);
 }
 
+TEST(vec, ctorOne)
+{
+  mth::Vec<double> v{-4};
+
+  EXPECT_EQ(v.x(), -4);
+  EXPECT_EQ(v.y(), -4);
+  EXPECT_EQ(v.z(), -4);
+  EXPECT_EQ(v[0], -4);
+  EXPECT_EQ(v[1], -4);
+  EXPECT_EQ(v[2], -4);
+}
+
 TEST(vec, add)
 {
   mth::Vec<double> v{1, 2, 3}, vv{v};
@@ -60,13 +72,13 @@ TEST(vec, dot)
 
 TEST(vec, cross)
 {
-  mth::Vec<double> v{1, 2, 3}, vv{0, 3, -2};
+  mth::Vec<double> v{1, 0, 0}, vv{0, 3, 0}, answ{0, 0, 3};
 
-  auto res = v.dot(vv);
-  auto res2 = vv.dot(v);
+  auto res = v.cross(vv);
+  auto res2 = vv.cross(v);
 
-  EXPECT_EQ(res, res2);
-  EXPECT_EQ(res, 0);
+  EXPECT_EQ(res, -res2);
+  EXPECT_EQ(res, answ);
 }
 
 TEST(vec, eq)
@@ -82,4 +94,16 @@ TEST(vec, eq)
   EXPECT_FALSE(res1);
   EXPECT_TRUE(res2);
   EXPECT_FALSE(res3);
+}
+
+TEST(vec, mul)
+{
+  mth::Vec<double> v{1, 2, 3}, answ{3, 6, 9};
+  constexpr int val = 3;
+
+  auto res = v * val;
+  auto res1 = val * v;
+
+  EXPECT_EQ(res, res1);
+  EXPECT_EQ(res, answ);
 }
