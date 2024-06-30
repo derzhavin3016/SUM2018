@@ -24,7 +24,7 @@ foreach(TARGET ${TARGETS})
   target_include_directories(${TARGET} PRIVATE ${CMAKE_SOURCE_DIR}/include)
   target_compile_features(${TARGET} PRIVATE cxx_std_20)
 
-  target_compile_options(${TARGET} PRIVATE /W4)
+  target_compile_options(${TARGET} PRIVATE -Wall -Wextra -Wpedantic)
 endforeach()
 
 enable_testing()

@@ -4,8 +4,8 @@
  * PURPOSE
  */
 
-#ifndef __INCLUDE_MATH_VEC_HPP__
-#define __INCLUDE_MATH_VEC_HPP__
+#ifndef ANIM_INCLUDE_MATH_VEC_HPP_INCLUDED
+#define ANIM_INCLUDE_MATH_VEC_HPP_INCLUDED
 
 #include <array>
 #include <concepts>
@@ -13,6 +13,7 @@
 #include <limits>
 #include <numeric>
 #include <ranges>
+#include <type_traits>
 
 #include "mthdef.hpp"
 
@@ -33,15 +34,13 @@ private:
 public:
   Vec() = default;
 
-  template <std::convertible_to<T> Arg>
-  explicit Vec(Arg arg) noexcept
+  explicit Vec(std::convertible_to<T> auto arg) noexcept
   {
     coords.fill(arg);
   }
 
   /* Vector constructor method */
-  template <std::convertible_to<T>... Arg>
-  Vec(Arg... arg) noexcept
+  Vec(std::convertible_to<T> auto... arg) noexcept
     requires(sizeof...(arg) == numCoords)
     : coords{static_cast<T>(arg)...}
   {}
@@ -121,14 +120,12 @@ public:
     return Vec(y() * V.z() - z() * V.y(), z() * V.x() - x() * V.z(), x() * V.y() - y() * V.x());
   }
 
-  template <Number U>
-  Vec &operator*=(U number) noexcept
+  Vec &operator*=(Number auto number) noexcept
   {
     return transform([number](auto ci, auto) { return ci * number; });
   }
 
-  template <Number U>
-  Vec &operator/=(U number) noexcept
+  Vec &operator/=(Number auto number) noexcept
   {
     return operator*=(static_cast<T>(1) / number);
   }
@@ -166,8 +163,7 @@ public:
   }
 
 private:
-  template <typename Transformer>
-  Vec &transform(Transformer &&trans)
+  Vec &transform(auto trans)
   {
     std::ranges::copy(coords |
                         std::views::transform([i = std::size_t{}, &trans](auto coord) mutable {
@@ -237,6 +233,6 @@ using Vec4 = detail::Vec<T, 4>;
 
 } // namespace mth
 
-#endif // __INCLUDE_MATH_VEC_HPP__
+#endif /* ANIM_INCLUDE_MATH_VEC_HPP_INCLUDED */
 
 /* End of 'vec.h' file */

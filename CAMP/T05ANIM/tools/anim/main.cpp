@@ -8,7 +8,7 @@
 
 #include <windows.h>
 
-#include "Math/vec.hpp"
+#include "math/vec.hpp"
 
 /* The main program function.
  * ARGUMENTS:
