@@ -101,7 +101,7 @@ public:
   auto operator-() const noexcept
   {
     auto tmp = *this;
-    tmp.transform([](auto ci, auto i) { return -ci; });
+    tmp.transform([](auto ci, auto) { return -ci; });
     return tmp;
   }
 
@@ -159,7 +159,7 @@ public:
   [[nodiscard]] bool isEqual(const Vec &V) const noexcept
   {
     return std::equal(coords.cbegin(), coords.cend(), V.coords.cbegin(), V.coords.cend(),
-                      [](auto c1, auto c2) { return Comparator::isEqual(c1, c2); });
+                      Comparator::isEqual);
   }
 
 private:

@@ -1,2 +1,1 @@
-add_executable(vec_test vec.cpp)
-upd_tar_list(vec_test TESTLIST)
+anim_add_utest(vec.cpp)

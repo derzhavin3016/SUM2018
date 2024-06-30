@@ -7,8 +7,11 @@
 #ifndef __MATH_MTHDEF_H__
 #define __MATH_MTHDEF_H__
 
+#include <cmath>
 #include <concepts>
+#include <limits>
 #include <numbers>
+
 
 namespace mth
 {

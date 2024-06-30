@@ -1,2 +1,1 @@
-add_executable(example example.cpp)
-upd_tar_list(example TESTLIST)
+anim_add_utest(example.cpp)
