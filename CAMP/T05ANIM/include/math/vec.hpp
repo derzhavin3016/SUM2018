@@ -32,15 +32,15 @@ private:
   std::array<T, numCoords> coords{};
 
 public:
-  Vec() = default;
+  constexpr Vec() = default;
 
-  explicit Vec(std::convertible_to<T> auto arg) noexcept
+  constexpr explicit Vec(std::convertible_to<T> auto arg) noexcept
   {
     coords.fill(arg);
   }
 
   /* Vector constructor method */
-  Vec(std::convertible_to<T> auto... arg) noexcept
+  constexpr Vec(std::convertible_to<T> auto... arg) noexcept
     requires(sizeof...(arg) == numCoords)
     : coords{static_cast<T>(arg)...}
   {}
@@ -52,35 +52,35 @@ public:
    * RETURNS:
    *       (vec<T> &) link to result vector;
    */
-  Vec &operator+=(const Vec &V) noexcept
+  constexpr Vec &operator+=(const Vec &V) noexcept
   {
     return transform([&V](const auto &ci, auto i) { return ci + V[i]; });
   } /* End of 'operator+=' function */
 
-  [[nodiscard]] T operator[](std::size_t i) const noexcept
+  [[nodiscard]] constexpr T operator[](std::size_t i) const noexcept
   {
     return coords[i];
   }
 
-  [[nodiscard]] T &operator[](std::size_t i) noexcept
+  [[nodiscard]] constexpr T &operator[](std::size_t i) noexcept
   {
     return coords[i];
   }
 
-  [[nodiscard]] auto x() const noexcept
+  [[nodiscard]] constexpr auto x() const noexcept
   {
     return this->operator[](0);
   }
-  [[nodiscard]] auto y() const noexcept
+  [[nodiscard]] constexpr auto y() const noexcept
   {
     return this->operator[](1);
   }
-  [[nodiscard]] auto z() const noexcept
+  [[nodiscard]] constexpr auto z() const noexcept
     requires(numCoords >= 3)
   {
     return this->operator[](2);
   }
-  [[nodiscard]] auto w() const noexcept
+  [[nodiscard]] constexpr auto w() const noexcept
     requires(numCoords >= 4)
   {
     return this->operator[](3);
@@ -93,44 +93,44 @@ public:
    * RETURNS:
    *       (vec<T> &) link to result vector;
    */
-  Vec &operator-=(const Vec &V) noexcept
+  constexpr Vec &operator-=(const Vec &V) noexcept
   {
     return transform([&V](const auto &ci, auto i) { return ci - V[i]; });
   } /* End of 'operator-=' function */
 
-  auto operator-() const noexcept
+  [[nodiscard]] constexpr auto operator-() const noexcept
   {
     auto tmp = *this;
     tmp.transform([](auto ci, auto) { return -ci; });
     return tmp;
   }
 
-  [[nodiscard]] auto length() const noexcept
+  [[nodiscard]] constexpr auto length() const noexcept
   {
     return sqrt(length2());
   }
 
-  [[nodiscard]] auto dot(const Vec &V) const noexcept
+  [[nodiscard]] constexpr auto dot(const Vec &V) const noexcept
   {
     return std::inner_product(coords.cbegin(), coords.cend(), V.coords.cbegin(), T{0});
   }
 
-  [[nodiscard]] auto cross(const Vec &V) const noexcept
+  [[nodiscard]] constexpr auto cross(const Vec &V) const noexcept
   {
     return Vec(y() * V.z() - z() * V.y(), z() * V.x() - x() * V.z(), x() * V.y() - y() * V.x());
   }
 
-  Vec &operator*=(Number auto number) noexcept
+  constexpr Vec &operator*=(Number auto number) noexcept
   {
     return transform([number](auto ci, auto) { return ci * number; });
   }
 
-  Vec &operator/=(Number auto number) noexcept
+  constexpr Vec &operator/=(Number auto number) noexcept
   {
     return operator*=(static_cast<T>(1) / number);
   }
 
-  [[nodiscard]] auto normalize() const noexcept
+  [[nodiscard]] constexpr auto normalize() const noexcept
   {
     auto len = length();
     auto V = *this;
@@ -141,29 +141,29 @@ public:
     return V;
   }
 
-  [[nodiscard]] static auto normalizing(const Vec &V) noexcept
+  [[nodiscard]] constexpr static auto normalizing(const Vec &V) noexcept
   {
     return V.normalize();
   }
 
-  [[nodiscard]] auto length2()
+  [[nodiscard]] constexpr auto length2()
   {
     return dot(*this);
   }
 
-  [[nodiscard]] auto distance(const Vec &V)
+  [[nodiscard]] constexpr auto distance(const Vec &V)
   {
     return (*this - V).length();
   }
 
-  [[nodiscard]] bool isEqual(const Vec &V) const noexcept
+  [[nodiscard]] constexpr bool isEqual(const Vec &V) const noexcept
   {
     return std::equal(coords.cbegin(), coords.cend(), V.coords.cbegin(), V.coords.cend(),
                       Comparator::isEqual);
   }
 
 private:
-  Vec &transform(auto trans)
+  constexpr Vec &transform(auto trans)
   {
     std::ranges::copy(coords |
                         std::views::transform([i = std::size_t{}, &trans](auto coord) mutable {
@@ -176,13 +176,13 @@ private:
 };
 
 template <std::floating_point T, std::size_t N>
-[[nodiscard]] bool operator==(const Vec<T, N> &lhs, const Vec<T, N> &rhs) noexcept
+[[nodiscard]]constexpr bool operator==(const Vec<T, N> &lhs, const Vec<T, N> &rhs) noexcept
 {
   return lhs.isEqual(rhs);
 }
 
 template <std::floating_point T, std::size_t N>
-auto operator+(const Vec<T, N> &lhs, const Vec<T, N> &rhs) noexcept
+[[nodiscard]] constexpr auto operator+(const Vec<T, N> &lhs, const Vec<T, N> &rhs) noexcept
 {
   auto tmp = lhs;
   tmp += rhs;
@@ -190,7 +190,7 @@ auto operator+(const Vec<T, N> &lhs, const Vec<T, N> &rhs) noexcept
 }
 
 template <std::floating_point T, std::size_t N>
-auto operator-(const Vec<T, N> &lhs, const Vec<T, N> &rhs) noexcept
+[[nodiscard]] constexpr auto operator-(const Vec<T, N> &lhs, const Vec<T, N> &rhs) noexcept
 {
   auto tmp = lhs;
   tmp -= rhs;
@@ -198,7 +198,7 @@ auto operator-(const Vec<T, N> &lhs, const Vec<T, N> &rhs) noexcept
 }
 
 template <std::floating_point T, std::size_t N, std::convertible_to<T> U>
-auto operator*(const Vec<T, N> &lhs, U rhs) noexcept
+[[nodiscard]] constexpr auto operator*(const Vec<T, N> &lhs, U rhs) noexcept
 {
   auto tmp = lhs;
   tmp *= rhs;
@@ -206,7 +206,7 @@ auto operator*(const Vec<T, N> &lhs, U rhs) noexcept
 }
 
 template <std::floating_point T, std::size_t N, Number U>
-auto operator/(const Vec<T, N> &lhs, U rhs) noexcept
+[[nodiscard]] constexpr auto operator/(const Vec<T, N> &lhs, U rhs) noexcept
 {
   auto tmp = lhs;
   tmp /= rhs;
@@ -214,13 +214,22 @@ auto operator/(const Vec<T, N> &lhs, U rhs) noexcept
 }
 
 template <std::floating_point T, std::size_t N, Number U>
-auto operator*(U lhs, const Vec<T, N> &rhs) noexcept
+[[nodiscard]] constexpr auto operator*(U lhs, const Vec<T, N> &rhs) noexcept
 {
   auto tmp = rhs;
   tmp *= lhs;
   return tmp;
 }
 } // namespace detail
+
+enum class Axis : std::int8_t
+{
+  X = 0,
+  Y = 1,
+  Z = 2,
+  W = 3,
+  NONE
+};
 
 template <std::floating_point T>
 using Vec2 = detail::Vec<T, 2>;
