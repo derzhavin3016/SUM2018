@@ -130,20 +130,20 @@ public:
     return operator*=(static_cast<T>(1) / number);
   }
 
-  [[nodiscard]] constexpr auto normalize() const noexcept
+  constexpr auto &normalize() noexcept
   {
     auto len = length();
-    auto V = *this;
 
     if (len != 0 && len != 1)
-      V /= len;
+      *this /= len;
 
-    return V;
+    return *this;
   }
 
-  [[nodiscard]] constexpr static auto normalizing(const Vec &V) noexcept
+  [[nodiscard]] auto normalized() const
   {
-    return V.normalize();
+    auto v = *this;
+    return v.normalize();
   }
 
   [[nodiscard]] constexpr auto length2()
@@ -176,7 +176,7 @@ private:
 };
 
 template <std::floating_point T, std::size_t N>
-[[nodiscard]]constexpr bool operator==(const Vec<T, N> &lhs, const Vec<T, N> &rhs) noexcept
+[[nodiscard]] constexpr bool operator==(const Vec<T, N> &lhs, const Vec<T, N> &rhs) noexcept
 {
   return lhs.isEqual(rhs);
 }
@@ -228,7 +228,6 @@ enum class Axis : std::int8_t
   Y = 1,
   Z = 2,
   W = 3,
-  NONE
 };
 
 template <std::floating_point T>
