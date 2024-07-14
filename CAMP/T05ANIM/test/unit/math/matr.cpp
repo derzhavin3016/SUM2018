@@ -112,6 +112,7 @@ TEST(Matr, scale)
 TEST(Matr, rotX)
 {
   ASSERT_EQ(Mat::rotX(32).inversed(), Mat::rotX(-32));
+  ASSERT_EQ(Mat::rotX(32).inversed(), Mat::rotX(-32));
 
   auto v = mth::Vec<double>{3, 2, 1};
   decltype(v) exp{3, 1, -2};
@@ -119,6 +120,7 @@ TEST(Matr, rotX)
 
   EXPECT_EQ(mth::vecTrans(t, v), exp);
 }
+
 TEST(Matr, rotY)
 {
   ASSERT_EQ(Mat::rotY(72).inversed(), Mat::rotY(-72));
@@ -126,6 +128,29 @@ TEST(Matr, rotY)
   auto v = mth::Vec<double>{3, 2, 1};
   decltype(v) exp{-1, 2, 3};
   auto t = Mat::rotY(90);
+
+  EXPECT_EQ(mth::vecTrans(t, v), exp);
+}
+
+TEST(Matr, rotZ)
+{
+  ASSERT_EQ(Mat::rotZ(35).inversed(), Mat::rotZ(-35));
+
+  auto v = mth::Vec<double>{3, 2, 1};
+  decltype(v) exp{2, -3, 1};
+  auto t = Mat::rotZ(90);
+
+  EXPECT_EQ(mth::vecTrans(t, v), exp);
+}
+
+TEST(Matr, rotVec)
+{
+  auto axis = mth::Vec<double>{1};
+  ASSERT_EQ(Mat::rot(35, axis).inversed(), Mat::rot(-35, axis));
+
+  auto v = mth::Vec<double>{1, 0, 0};
+  decltype(v) exp{0, 0, 1};
+  auto t = Mat::rot(120, axis);
 
   EXPECT_EQ(mth::vecTrans(t, v), exp);
 }

@@ -9,6 +9,7 @@
 
 #include <array>
 #include <concepts>
+#include <format>
 #include <iostream>
 #include <limits>
 #include <numeric>
@@ -85,6 +86,24 @@ public:
   {
     return this->operator[](3);
   }
+  [[nodiscard]] constexpr auto &x() noexcept
+  {
+    return this->operator[](0);
+  }
+  [[nodiscard]] constexpr auto &y() noexcept
+  {
+    return this->operator[](1);
+  }
+  [[nodiscard]] constexpr auto &z() noexcept
+    requires(numCoords >= 3)
+  {
+    return this->operator[](2);
+  }
+  [[nodiscard]] constexpr auto &w() noexcept
+    requires(numCoords >= 4)
+  {
+    return this->operator[](3);
+  }
 
   /* Vector substraction and equal vector (reload -=) function
    * ARGUMENTS:
@@ -146,12 +165,12 @@ public:
     return v.normalize();
   }
 
-  [[nodiscard]] constexpr auto length2()
+  [[nodiscard]] constexpr auto length2() const
   {
     return dot(*this);
   }
 
-  [[nodiscard]] constexpr auto distance(const Vec &V)
+  [[nodiscard]] constexpr auto distance(const Vec &V) const
   {
     return (*this - V).length();
   }
@@ -160,6 +179,14 @@ public:
   {
     return std::equal(coords.cbegin(), coords.cend(), V.coords.cbegin(), V.coords.cend(),
                       Comparator::isEqual);
+  }
+
+  void print(std::ostream &ost) const
+  {
+    for (std::size_t i = 0; i < coords.size(); ++i)
+    {
+      ost << std::format("[{}] = {}{}", i, coords[i], i == (coords.size() - 1) ? "" : ", ");
+    }
   }
 
 private:
@@ -220,6 +247,20 @@ template <std::floating_point T, std::size_t N, Number U>
   tmp *= lhs;
   return tmp;
 }
+
+template <typename T, std::size_t N>
+void PrintTo(const Vec<T, N> &vec, std::ostream *os)
+{
+  vec.print(*os);
+}
+
+template <typename T, std::size_t N>
+auto &operator<<(std::ostream &ost, const Vec<T, N> &vec)
+{
+  vec.print(ost);
+  return ost;
+}
+
 } // namespace detail
 
 enum class Axis : std::int8_t
